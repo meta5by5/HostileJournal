@@ -13,10 +13,16 @@
     <button id="focusOutputPanel" type="button" aria-controls="outputPanel">Output</button>
     <button id="openOraclePanel" type="button" aria-controls="oraclePanel">Oracles</button>
     <button id="openStoragePanel" type="button" aria-controls="storagePanel">Save</button>
+    <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkPanel">Crew</button>
   </nav>
   <div id="panelBackdrop" class="panel-backdrop" hidden></div>
   <main class="layout">
-    <section id="controlsPanel" class="panel controls side-panel side-left" aria-label="Scene Builder"><div class="panel-title-row"><h2>Scene Builder</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
+    <section id="controlsPanel" class="panel controls left-view active-left-view side-panel side-left" aria-label="Scene Builder">
+      <div class="left-tabs" role="tablist" aria-label="Left section views">
+        <button class="left-tab-button active" type="button" data-left-tab="scene">Scene Builder</button>
+        <button class="left-tab-button" type="button" data-left-tab="crew">Crew Link</button>
+      </div>
+      <div class="panel-title-row"><h2>Scene Builder</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <label>Campaign / Region<input id="campaignName" placeholder="Frontier Reach, company route, colonial sector..."></label>
       <div class="grid2"><label>Planet<select id="planet"></select></label><label>Biome<select id="biome"></select></label></div>
       <div class="grid2"><label>Location Type<select id="locationType"></select></label><label>Immediate Surroundings<select id="surroundings"></select></label></div>
@@ -92,6 +98,15 @@
       <p class="small">Open folders by category, then roll a whole table or individual nested table.</p>
       <label class="oracle-filter-label">Filter Oracles<input id="oracleFilter" type="search" placeholder="Search oracle groups and tables..."></label>
       <div id="oracleTree"></div>
+    </section>
+
+    <section id="crewLinkPanel" class="panel controls left-view crew-link-panel side-panel side-left" aria-label="Starforged Crew Link">
+      <div class="left-tabs" role="tablist" aria-label="Left section views">
+        <button class="left-tab-button" type="button" data-left-tab="scene">Scene Builder</button>
+        <button class="left-tab-button active" type="button" data-left-tab="crew">Crew Link</button>
+      </div>
+      <div class="panel-title-row"><h2>Crew Link</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
+      <iframe title="Starforged Crew Link" src="https://starforged-crew-link.scottbenton.dev/" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </section>
     <section id="storagePanel" class="panel storage side-panel side-left" aria-label="Save and Sync"><details id="saveSyncDetails" class="save-sync-details"><summary class="panel-title-row save-sync-summary"><span class="summary-title">Save / Sync</span><button class="close-panel secondary" type="button" data-close-panel>Close</button></summary><div class="save-sync-body"><p class="small">Always autosaves to browser storage. On desktop Chrome/Edge, bind a campaign JSON file in a OneDrive-synced folder.</p><div class="button-column"><button id="exportJson">Export Campaign JSON</button><button id="exportJournalRichText" class="secondary" type="button">Export Journal</button><label class="file-button">Import Campaign JSON<input id="importJson" type="file" accept=".json,application/json"></label><button id="bindFile" class="secondary">Bind Save File / OneDrive Folder</button><button id="saveBoundFile" class="secondary">Save Bound File Now</button><button id="newCampaign" class="danger">New Campaign</button></div><div class="sync-card"><h3>10-minute sync helper</h3><label><input id="autosaveBoundFile" type="checkbox">Autosave bound file every 10 minutes</label><p id="fileSupport" class="small"></p></div></div></details></section>
   </main>
