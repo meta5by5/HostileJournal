@@ -19,17 +19,17 @@ function initMobilePanels(){
   const output = $("outputPanel");
   const panels = [controls, oracles, storage].filter(Boolean);
 
+  function closePanels(){
+    panels.forEach(p => p.classList.remove("is-open"));
+    if (backdrop) backdrop.hidden = true;
+    document.body.classList.remove("side-panel-open");
+  }
+
   function openPanel(panel){
     if (!panel) return;
     panels.forEach(p => p.classList.toggle("is-open", p === panel));
     if (backdrop) backdrop.hidden = false;
     document.body.classList.add("side-panel-open");
-  }
-
-  function closePanels(){
-    panels.forEach(p => p.classList.remove("is-open"));
-    if (backdrop) backdrop.hidden = true;
-    document.body.classList.remove("side-panel-open");
   }
 
   const openControls = $("openControlsPanel");
