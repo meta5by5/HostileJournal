@@ -3,42 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Hostile Scene Chain Oracle</title>
+  <title>Hostile Sci-fi Worldbuilder</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header"><div><h1>Hostile Scene Chain Oracle</h1><p>Offline-first scene chaining, worldbuilding tables, districts, factions, planets, derelicts, missions, and conflict architecture.</p></div><div class="status-pill" id="saveStatus">Loading…</div></header>
+  <header class="app-header"><div><h1>Hostile Sci-fi Worldbuilder</h1><p>Offline-first scene chaining, worldbuilding tables, districts, factions, planets, derelicts, missions, and conflict architecture.</p></div><div class="status-pill" id="saveStatus">Loading…</div></header>
   <nav class="mobile-panel-tabs" aria-label="Mobile panel controls">
-    <button id="openControlsPanel" type="button" aria-controls="controlsPanel">Builder</button>
+    <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkDrawer">Crew</button>
     <button id="focusOutputPanel" type="button" aria-controls="outputPanel">Output</button>
     <button id="openOraclePanel" type="button" aria-controls="oraclePanel">Oracles</button>
+    <button id="openScenesPanel" type="button" aria-controls="controlsPanel">Scenes</button>
     <button id="openStoragePanel" type="button" aria-controls="storagePanel">Save</button>
   </nav>
   <div id="panelBackdrop" class="panel-backdrop" hidden></div>
   <main class="layout">
-    <section id="controlsPanel" class="panel controls side-panel side-left" aria-label="Scene Builder"><div class="panel-title-row"><h2>Scene Builder</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
-      <label>Campaign / Region<input id="campaignName" placeholder="Frontier Reach, company route, colonial sector..."></label>
-      <div class="grid2"><label>Planet<select id="planet"></select></label><label>Biome<select id="biome"></select></label></div>
-      <div class="grid2"><label>Location Type<select id="locationType"></select></label><label>Immediate Surroundings<select id="surroundings"></select></label></div>
-      <div class="grid2"><label>Scene Intent<select id="intent"></select></label><label>Pacing<select id="pacing"></select></label></div>
-      <div class="grid2"><label>Scene Phase<select id="phase"></select></label><label>Threat Level<input id="threatLevel" type="number" min="0" max="10" step="1"></label></div>
-      <div class="grid2"><label>Mystery Level<input id="mysteryLevel" type="number" min="0" max="10" step="1"></label><label>Predictability<input id="predictability" type="range" min="0" max="100"><span id="predictabilityLabel"></span></label></div>
-      <label>Current Thread / Question<textarea id="currentThread" rows="3" placeholder="What is unresolved? What does the crew need next?"></textarea></label>
-      <div class="button-row"><button id="generateScene">Generate Next Scene</button><button id="advanceOnly" class="secondary">Advance Phase</button></div>
-      <div class="button-row"><button id="generateMission" class="secondary">Mission Seed</button><button id="generateWorld" class="secondary">World Seed</button></div>
-      <details open><summary>Continuity Rules</summary><div class="rules"><label><input id="useContinuity" type="checkbox">Reuse previous scene elements</label><label><input id="escalateOnComplication" type="checkbox">Escalate after complications</label><label><input id="useConflictArchitecture" type="checkbox">Add stakes, opposition logic, and meaningful choice</label></div></details>
-    </section>
-    <section id="outputPanel" class="panel output" aria-label="Current Output and Journal">
+    <section id="storagePanel" class="panel storage side-panel side-left" aria-label="Save and Sync"><details id="saveSyncDetails" class="save-sync-details"><summary class="panel-title-row save-sync-summary"><span class="summary-title">Save / Sync</span><button class="close-panel secondary" type="button" data-close-panel>Close</button></summary><div class="save-sync-body"><p class="small">Always autosaves to browser storage. On desktop Chrome/Edge, bind a campaign JSON file in a OneDrive-synced folder.</p><div class="button-column"><button id="exportJson">Export Campaign JSON</button><button id="exportJournalRichText" class="secondary" type="button">Export Journal</button><button id="openCrewLink" class="secondary" type="button">Open Crew Link</button><label class="file-button">Import Campaign JSON<input id="importJson" type="file" accept=".json,application/json"></label><button id="bindFile" class="secondary">Bind Save File / OneDrive Folder</button><button id="saveBoundFile" class="secondary">Save Bound File Now</button><button id="newCampaign" class="danger">New Campaign</button></div><div class="sync-card"><h3>10-minute sync helper</h3><label><input id="autosaveBoundFile" type="checkbox">Autosave bound file every 10 minutes</label><p id="fileSupport" class="small"></p></div></div></details></section>
+
+    <section id="outputPanel" class="panel output" aria-label="Scene Output and Journal">
       <div class="center-tabs" role="tablist" aria-label="Center section tabs">
-        <button id="showOutputTab" class="tab-button active" type="button">Current Output</button>
+        <button id="showOutputTab" class="tab-button active" type="button">Scene Output</button>
         <button id="showJournalTab" class="tab-button" type="button">Journal</button>
       </div>
 
       <div id="currentOutputView" class="center-view active-view">
         <div class="section-header">
-          <h2>Current Output</h2>
+          <h2>Scene Output</h2>
           <div class="mini-buttons">
-            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy current output">📋</button>
+            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output">📋</button>
             <button id="addCurrentToJournal" class="secondary compact-button" type="button">Add to Journal</button>
           </div>
         </div>
@@ -51,16 +42,20 @@
       <div id="journalView" class="center-view">
         <div class="section-header">
           <h2>Journal</h2>
-          <button id="addJournalComment" class="secondary compact-button" type="button">Add Comment</button>
         </div>
         <div id="journalList" class="journal-list"></div>
         <label>Comment</label>
+        <div class="comment-action-row comment-action-row-right">
+          <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor">🧹</button>
+          <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment">💬</button>
+        </div>
         <div class="format-toolbar" data-editor-toolbar="journalCommentEditor">
-          <button type="button" class="icon-button secondary" data-format="bold" title="Bold" aria-label="Bold">𝐁</button>
-          <button type="button" class="icon-button secondary" data-format="italic" title="Italic" aria-label="Italic">𝐼</button>
+          <button type="button" class="icon-button secondary" data-format="bold" title="Bold" aria-label="Bold">𝗕</button>
+          <button type="button" class="icon-button secondary" data-format="italic" title="Italic" aria-label="Italic">𝘐</button>
           <button type="button" class="icon-button secondary" data-format="insertUnorderedList" title="Bullet list" aria-label="Bullet list">•</button>
+          <button type="button" class="icon-button secondary" data-format="insertOrderedList" title="Numbered list" aria-label="Numbered list">☷</button>
           <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="blockquote" title="Quote" aria-label="Quote">❝</button>
-          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="h2" title="Header" aria-label="Header">H</button>
+          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="h2" title="Header" aria-label="Header">▣</button>
           <button type="button" class="icon-button secondary" data-format="indent" title="Indent" aria-label="Indent">⇥</button>
           <button type="button" class="icon-button secondary" data-format="outdent" title="Outdent" aria-label="Outdent">⇤</button>
           <label class="icon-button secondary image-upload-button" title="Insert image" aria-label="Insert image">🖼<input type="file" accept="image/*" data-image-target="journalCommentEditor"></label>
@@ -68,26 +63,54 @@
         <div id="journalCommentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Add a note, interpretation, ruling, clue, or campaign comment..."></div>
       </div>
     </section>
-    <section id="oraclePanel" class="panel oracle-panel side-panel side-right" aria-label="Worldbuilding Oracles">
+    <section id="rightPanelShell" class="right-panel-shell" aria-label="Oracles and Scenes">
+      <div class="right-tabs" role="tablist" aria-label="Right section tabs">
+        <button id="showOraclesTab" class="tab-button active" type="button">Oracles</button>
+        <button id="showScenesTab" class="tab-button" type="button">Scenes</button>
+      </div>
+    <section id="oraclePanel" data-right-view="oracles" class="panel oracle-panel side-panel side-right right-tab-view active-right-view" aria-label="Worldbuilding Oracles">
       <div class="panel-title-row"><h2>Oracles</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <h2>Table Output</h2>
       <div class="section-header oracle-actions">
         <p class="small">Oracle rolls append here until you clear them or refresh the page.</p>
         <div class="mini-buttons">
           <button id="copyOracleOutput" class="secondary icon-button" type="button" title="Copy" aria-label="Copy table output">📋</button>
-          <button id="appendOracleToOutput" class="secondary icon-button" type="button" title="Append to current output" aria-label="Append to current output">➕</button>
+          <button id="appendOracleToJournal" class="secondary icon-button" type="button" title="Add to Journal for edit" aria-label="Add to Journal for edit">➕</button>
           <button id="clearOracleOutput" class="danger icon-button" type="button" title="Clear" aria-label="Clear table output">🗑</button>
         </div>
       </div>
       <div id="oracleOutput" class="oracle-output" contenteditable="true" role="textbox" aria-multiline="true">Roll from the table tree.</div>
 
-      <h2>Worldbuilding Oracles</h2>
+      <div class="section-header oracle-tree-header">
+        <h2>Worldbuilding Oracles</h2>
+        <button id="collapseAllOracles" class="secondary icon-button" type="button" title="Collapse all Oracles" aria-label="Collapse all Oracle sections">▴▴</button>
+      </div>
       <p class="small">Open folders by category, then roll a whole table or individual nested table.</p>
       <label class="oracle-filter-label">Filter Oracles<input id="oracleFilter" type="search" placeholder="Search oracle groups and tables..."></label>
       <div id="oracleTree"></div>
     </section>
-    <section id="storagePanel" class="panel storage side-panel side-left" aria-label="Save and Sync"><details id="saveSyncDetails" class="save-sync-details"><summary class="panel-title-row save-sync-summary"><span class="summary-title">Save / Sync</span><button class="close-panel secondary" type="button" data-close-panel>Close</button></summary><div class="save-sync-body"><p class="small">Always autosaves to browser storage. On desktop Chrome/Edge, bind a campaign JSON file in a OneDrive-synced folder.</p><div class="button-column"><button id="exportJson">Export Campaign JSON</button><label class="file-button">Import Campaign JSON<input id="importJson" type="file" accept=".json,application/json"></label><button id="bindFile" class="secondary">Bind Save File / OneDrive Folder</button><button id="saveBoundFile" class="secondary">Save Bound File Now</button><button id="newCampaign" class="danger">New Campaign</button></div><div class="sync-card"><h3>10-minute sync helper</h3><label><input id="autosaveBoundFile" type="checkbox">Autosave bound file every 10 minutes</label><p id="fileSupport" class="small"></p></div></div></details></section>
+    <section id="controlsPanel" data-right-view="scenes" class="panel controls scene-builder-panel side-panel side-right right-tab-view" aria-label="Scene Builder"><div class="panel-title-row"><h2>Scene Builder</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
+      <label>Campaign / Region<input id="campaignName" placeholder="Frontier Reach, company route, colonial sector..."></label>
+      <div class="grid2"><label>Planet<select id="planet"></select></label><label>Biome<select id="biome"></select></label></div>
+      <div class="grid2"><label>Location Type<select id="locationType"></select></label><label>Immediate Surroundings<select id="surroundings"></select></label></div>
+      <div class="grid2"><label>Scene Intent<select id="intent"></select></label><label>Pacing<select id="pacing"></select></label></div>
+      <div class="grid2"><label>Scene Phase<select id="phase"></select></label><label>Threat Level<input id="threatLevel" type="number" min="0" max="10" step="1"></label></div>
+      <div class="grid2"><label>Mystery Level<input id="mysteryLevel" type="number" min="0" max="10" step="1"></label><label>Predictability<input id="predictability" type="range" min="0" max="100"><span id="predictabilityLabel"></span></label></div>
+      <label>Current Thread / Question<textarea id="currentThread" rows="3" placeholder="What is unresolved? What does the crew need next?"></textarea></label>
+      <div class="button-row"><button id="generateScene">Generate Next Scene</button><button id="advanceOnly" class="secondary">Advance Phase</button></div>
+      <div class="button-row"><button id="generateMission" class="secondary">Mission Seed</button><button id="generateWorld" class="secondary">World Seed</button></div>
+      <details open><summary>Continuity Rules</summary><div class="rules"><label><input id="useContinuity" type="checkbox">Reuse previous scene elements</label><label><input id="escalateOnComplication" type="checkbox">Escalate after complications</label><label><input id="useConflictArchitecture" type="checkbox">Add stakes, opposition logic, and meaningful choice</label></div></details>
+    </section>
+    </section>
   </main>
+
+  <div id="crewLinkDrawer" class="crew-link-drawer" aria-label="Starforged Crew Link" hidden>
+    <div class="crew-link-header">
+      <strong>Starforged Crew Link</strong>
+      <button id="closeCrewLink" class="secondary icon-button" type="button" title="Close" aria-label="Close Crew Link">✕</button>
+    </div>
+    <iframe title="Starforged Crew Link" src="https://starforged-crew-link.scottbenton.dev/" loading="lazy"></iframe>
+  </div>
   <footer><span>Standalone local app. No webserver required. Tables are original and editable in <code>tables.js</code>.</span></footer>
   <script src="tables.js"></script><script src="app.js"></script>
 </body>
