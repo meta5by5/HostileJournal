@@ -1,4 +1,4 @@
-# Hostile Scene Chain Oracle
+# Hostile Sci-fi Worldbuilder
 
 Standalone local HTML/JavaScript app for solo sci-fi scene generation and sequential event chaining.
 
@@ -54,7 +54,7 @@ This build adds collapsing side panels on mobile and smaller tablet widths:
 
 This build adds:
 
-- Append button in Table Output to append oracle rolls into Current Output.
+- Append button in Table Output to append oracle rolls into Journal.
 - Cleaner Roll Group formatting:
   - Header shows the common group path once.
   - Child table results appear on separate lines.
