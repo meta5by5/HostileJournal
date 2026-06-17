@@ -1,5 +1,6 @@
 *{box-sizing:border-box}:root{--bg:#0f1217;--panel:#181e28;--panel2:#222b3a;--text:#eef2f8;--muted:#aeb8c8;--accent:#86b7ff;--danger:#ff8a8a;--border:#344154;--good:#9ee6b4;--warn:#ffd58a}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}.app-header{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:1rem;border-bottom:1px solid var(--border);background:#111722}h1,h2,h3{margin:0 0 .5rem}p{color:var(--muted)}.status-pill{border:1px solid var(--border);padding:.5rem .75rem;border-radius:999px;white-space:nowrap;color:var(--good);background:#142018}.layout{display:grid;grid-template-columns:minmax(280px,380px) minmax(320px,1fr) minmax(300px,430px);grid-template-areas:"controls output oracles" "storage output oracles";gap:1rem;padding:1rem}.controls{grid-area:controls}.output{grid-area:output}.oracle-panel{grid-area:oracles}.storage{grid-area:storage}.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:1rem}label{display:block;margin:.75rem 0;color:var(--muted)}input,select,textarea,button{width:100%;margin-top:.25rem;padding:.7rem;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit}input[type=checkbox]{width:auto;margin-right:.4rem}textarea{resize:vertical}button,.file-button{cursor:pointer;border:0;background:var(--accent);color:#07111f;font-weight:700}button.secondary,.file-button{background:#d8e7ff}button.danger{background:var(--danger)}button.tiny{width:auto;padding:.35rem .55rem;font-size:.85rem;margin:0 0 0 .5rem}.file-button{display:block;text-align:center;padding:.7rem;border-radius:10px}.file-button input{display:none}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}.button-row,.button-column{display:flex;gap:.5rem;margin:.75rem 0}.button-column{flex-direction:column}.section-header{display:flex;justify-content:space-between;gap:.5rem}.section-header button{max-width:7rem}.scene-card{white-space:pre-wrap;background:#111722;border:1px solid var(--border);border-radius:12px;padding:1rem;min-height:300px;line-height:1.45}.scene-card.empty{color:var(--muted)}.scene-log{padding-left:1.25rem;max-height:55vh;overflow:auto}.scene-log li{margin:.75rem 0;padding:.75rem;background:#111722;border:1px solid var(--border);border-radius:10px}.small{font-size:.9rem;line-height:1.35}.rules,.sync-card,.oracle-output{background:#111722;border:1px solid var(--border);border-radius:10px;padding:.75rem}.oracle-output{white-space:pre-wrap;min-height:140px;color:var(--warn)}#oracleTree{max-height:78vh;overflow:auto;padding-right:.25rem}details.oracle-node{border:1px solid var(--border);background:#121824;border-radius:10px;padding:.5rem;margin:.5rem 0}details.oracle-node details{margin-left:.5rem}summary{cursor:pointer;font-weight:700}.table-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;color:var(--muted);border-top:1px solid #253044;padding:.45rem 0}.table-row span{overflow-wrap:anywhere}footer{padding:1rem;color:var(--muted);text-align:center}@media(max-width:1200px){.layout{grid-template-columns:1fr;grid-template-areas:"controls" "output" "oracles" "storage"}.grid2{grid-template-columns:1fr}.app-header{flex-direction:column;align-items:flex-start}}
 
+
 /* Android / responsive rendering improvements */
 html {
   -webkit-text-size-adjust: 100%;
@@ -15,10 +16,10 @@ button, input, select, textarea {
   touch-action: manipulation;
 }
 button {
-  min-height: 40px;
+  min-height: 44px;
 }
 select {
-  min-height: 40px;
+  min-height: 44px;
 }
 textarea {
   line-height: 1.4;
@@ -594,4 +595,129 @@ label {
 }
 summary > span {
   min-width: 0;
+}
+
+
+/* Comment editor action placement, ordered lists, and draggable image resizing */
+.comment-action-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: .25rem 0 .15rem;
+}
+.comment-action-row button {
+  width: auto;
+  max-width: none;
+}
+.rich-editor ol,
+.journal-text ol {
+  padding-left: 1.4rem;
+}
+.resizable-image {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: .35rem .2rem .35rem 0;
+  vertical-align: top;
+}
+.resizable-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.resizable-image .resize-handle {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  cursor: nwse-resize;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35);
+}
+.journal-text .resize-handle {
+  display: none;
+}
+.rich-editor .resizable-image:focus-within,
+.rich-editor .resizable-image:hover {
+  outline: 1px dashed var(--accent);
+  outline-offset: 3px;
+}
+
+.comment-action-row-right {
+  justify-content: flex-end;
+  align-items: center;
+}
+.comment-action-row-right .icon-button {
+  max-width: 3rem;
+  min-width: 2.75rem;
+  padding: .55rem .7rem;
+}
+.add-comment-icon {
+  font-size: 1.05rem;
+}
+.oracle-tree-header {
+  align-items: center;
+  margin-top: 1rem;
+}
+.oracle-tree-header h2 {
+  margin-bottom: 0;
+}
+.oracle-tree-header .icon-button {
+  max-width: 3rem;
+  min-width: 2.75rem;
+}
+
+
+/* Hostile Sci-fi Worldbuilder compact UI refinements */
+.format-toolbar { gap: .12rem !important; margin: .12rem 0 .12rem !important; align-items: center; }
+.format-toolbar button, .format-toolbar .image-upload-button { min-width: 1.65rem !important; min-height: 24px !important; padding: .1rem .22rem !important; border-radius: 6px !important; font-size: .86rem !important; }
+.rich-editor { padding: .45rem !important; }
+.resizable-image { margin: .08rem .08rem .08rem 0 !important; line-height: 0; }
+.resizable-image img { margin: 0 !important; }
+.resizable-image .resize-handle { right: -3px !important; bottom: -3px !important; width: 11px !important; height: 11px !important; border-radius: 3px !important; }
+.rich-editor .resizable-image:focus-within, .rich-editor .resizable-image:hover { outline-offset: 1px !important; }
+details.oracle-node { padding: .22rem .35rem !important; margin: .22rem 0 !important; border-radius: 7px !important; }
+details.oracle-node details { margin-left: .35rem !important; }
+details.oracle-node summary { min-height: 26px !important; padding: .05rem 0 !important; gap: .25rem !important; }
+#oracleTree { padding-right: .1rem !important; }
+.oracle-tree-header { margin-top: .45rem !important; margin-bottom: .15rem !important; }
+.oracle-filter-label { margin: .2rem 0 .3rem !important; }
+
+/* Right-side Oracles / Scenes tabbed workspace */
+.layout{
+  grid-template-columns:minmax(260px,340px) minmax(320px,1fr) minmax(320px,430px) !important;
+  grid-template-areas:"storage output right" !important;
+  align-items:start;
+}
+.right-panel-shell{grid-area:right;display:flex;flex-direction:column;gap:.5rem;min-width:0;}
+.right-tabs{display:flex;gap:.4rem;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:.35rem;}
+.right-tabs .tab-button{margin:0;}
+.right-tab-view{display:none;}
+.right-tab-view.active-right-view{display:block;}
+.scene-builder-panel{grid-area:auto;}
+.oracle-panel{grid-area:auto;}
+.storage{grid-area:storage;}
+.output{grid-area:output;}
+#controlsPanel.panel,#oraclePanel.panel{padding:.75rem;}
+
+/* Starforged Crew Link slide-out */
+.crew-link-drawer{position:fixed;left:1rem;top:calc(var(--header-offset, 96px));width:min(80vw, 920px);height:calc(100vh - 150px);z-index:80;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;transform:translateX(-105%);transition:transform .22s ease;}
+.crew-link-drawer.is-open{transform:translateX(0);}
+.crew-link-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .65rem;border-bottom:1px solid var(--border);background:#111722;}
+.crew-link-header .icon-button{width:auto;margin:0;padding:.3rem .5rem;}
+.crew-link-drawer iframe{border:0;width:100%;height:100%;background:#fff;}
+
+@media(max-width:1200px){
+  .layout{grid-template-columns:1fr !important;grid-template-areas:"storage" "output" "right" !important;}
+}
+@media(max-width:900px){
+  .right-panel-shell{display:block;}
+  .right-tabs{position:sticky;top:0;z-index:5;margin-bottom:.5rem;}
+  .right-panel-shell .side-panel{position:fixed;top:0;bottom:0;right:0;left:auto;width:min(92vw,430px);max-width:none;z-index:60;transform:translateX(110%);overflow:auto;display:block;}
+  .right-panel-shell .side-panel.is-open{transform:translateX(0);}
+  .right-panel-shell .side-panel:not(.is-open){pointer-events:none;}
+  .right-tab-view:not(.active-right-view){display:none !important;}
+  .crew-link-drawer{left:.5rem;top:4.25rem;width:80vw;height:calc(100vh - 5.25rem);}
 }
