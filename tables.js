@@ -12,18 +12,6 @@ window.SCENE_TABLES = {
       "A frontier marshal inherits a case nobody wants reopened.",
       "A trade route collapsed after ships began returning empty."
     ],
-    "Inciting Incident": [
-      "A distress call arrives from a place officially abandoned.",
-      "A local authority asks for help but refuses to give full access.",
-      "A cargo container is opened and the manifest is impossible.",
-      "A worker riot blocks the only safe route off-world.",
-      "A rival crew reaches the site minutes before the protagonists.",
-      "A habitat system begins failing in a way that looks intentional.",
-      "A fugitive offers proof of a hidden corporate program.",
-      "A survey drone returns with nonhuman biological traces.",
-      "A debt marker is called in at the worst possible time.",
-      "A quarantine order is issued after the crew is already inside."
-    ],
     "Campaign Tone": [
       "Hard industrial survival with moral compromise.",
       "Frontier lawkeeping under corporate pressure.",
@@ -35,6 +23,18 @@ window.SCENE_TABLES = {
       "Sparse western frontier in a hostile star sector.",
       "Dirty politics, logistics, and personal loyalties.",
       "Resource extraction drama with alien unknowns."
+    ],
+    "Inciting Incident": [
+      "A distress call arrives from a place officially abandoned.",
+      "A local authority asks for help but refuses to give full access.",
+      "A cargo container is opened and the manifest is impossible.",
+      "A worker riot blocks the only safe route off-world.",
+      "A rival crew reaches the site minutes before the protagonists.",
+      "A habitat system begins failing in a way that looks intentional.",
+      "A fugitive offers proof of a hidden corporate program.",
+      "A survey drone returns with nonhuman biological traces.",
+      "A debt marker is called in at the worst possible time.",
+      "A quarantine order is issued after the crew is already inside."
     ],
     "Sector Trouble": [
       "Fuel shortages make every jump political.",

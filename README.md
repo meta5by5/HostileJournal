@@ -1,6 +1,7 @@
 # Hostile Sci-fi Worldbuilder
  
-Standalone local HTML/JavaScript app for solo sci-fi scene generation and sequential event chaining.
+Standalone local HTML/JavaScript app for solo sci-fi scene generation and sequential event chaining. 
+Inspired by Crew Link and PUM.
 
 ## What changed
 

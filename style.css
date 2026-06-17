@@ -15,10 +15,10 @@ button, input, select, textarea {
   touch-action: manipulation;
 }
 button {
-  min-height: 44px;
+  min-height: 40px;
 }
 select {
-  min-height: 44px;
+  min-height: 40px;
 }
 textarea {
   line-height: 1.4;
