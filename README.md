@@ -48,3 +48,45 @@ This build adds collapsing side panels on mobile and smaller tablet widths:
 - A sticky mobile tab bar provides Builder / Output / Oracles / Save buttons.
 - Tapping outside a panel, pressing Close, or pressing Escape closes the panel.
 - Generating a scene on mobile closes the panel so the new output is immediately visible.
+
+
+## Journal and table-output update
+
+This build adds:
+
+- Append button in Table Output to append oracle rolls into Current Output.
+- Cleaner Roll Group formatting:
+  - Header shows the common group path once.
+  - Child table results appear on separate lines.
+- Tighter button padding.
+- Center section tabs for Current Output and Journal.
+- Add to Journal button in Current Output.
+- Add Comment field in Journal.
+- Edit and Delete controls on every Journal entry.
+- Journal entries are saved in the campaign JSON/local browser state.
+
+
+## Compact editor update
+
+This build adds:
+
+- Tighter button spacing/padding.
+- Icon buttons for copy, append, clear, roll, roll group, edit, and delete.
+- Editable Table Output window.
+- Journal entries sorted oldest-to-newest so the newest entry is last, directly above the comment editor.
+- Journal list scrolls, with older records extending upward.
+- Journal edit/delete controls moved to the top-right of each entry.
+- Rich-text formatting toolbar for new Journal comments and journal entry edits.
+- Save / Sync is now a collapsed-by-default expandable section with an arrow.
+
+
+## Oracle filter and rich editor update
+
+This build adds:
+
+- Header, indent, outdent, and image upload buttons to Journal editors.
+- Header, indent, outdent, and image upload buttons to each Journal entry edit window.
+- Group Roll now uses a double-dice icon.
+- Oracle groups are reordered with high-use groups first, then a practical default order.
+- Each oracle group rolls itself upward over time based on use count.
+- Oracle filter box filters visible oracle groups/tables by path or table content.
