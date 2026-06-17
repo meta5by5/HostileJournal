@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Hostile Sci-fi Worldbuilder</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=20260617-leftnav-fix">
 </head>
 <body>
   <header class="app-header"><div><h1>Hostile Sci-fi Worldbuilder</h1><p>Offline-first scene chaining, worldbuilding tables, districts, factions, planets, derelicts, missions, and conflict architecture.</p></div><div class="status-pill" id="saveStatus">Loading…</div></header>
@@ -34,17 +34,17 @@
       <div class="button-row"><button id="generateMission" class="secondary">Mission Seed</button><button id="generateWorld" class="secondary">World Seed</button></div>
       <details open><summary>Continuity Rules</summary><div class="rules"><label><input id="useContinuity" type="checkbox">Reuse previous scene elements</label><label><input id="escalateOnComplication" type="checkbox">Escalate after complications</label><label><input id="useConflictArchitecture" type="checkbox">Add stakes, opposition logic, and meaningful choice</label></div></details>
     </section>
-    <section id="outputPanel" class="panel output" aria-label="Current Output and Journal">
+    <section id="outputPanel" class="panel output" aria-label="Scene Output and Journal">
       <div class="center-tabs" role="tablist" aria-label="Center section tabs">
-        <button id="showOutputTab" class="tab-button active" type="button">Current Output</button>
+        <button id="showOutputTab" class="tab-button active" type="button">Scene Output</button>
         <button id="showJournalTab" class="tab-button" type="button">Journal</button>
       </div>
 
       <div id="currentOutputView" class="center-view active-view">
         <div class="section-header">
-          <h2>Current Output</h2>
+          <h2>Scene Output</h2>
           <div class="mini-buttons">
-            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy current output">📋</button>
+            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output">📋</button>
             <button id="addCurrentToJournal" class="secondary compact-button" type="button">Add to Journal</button>
           </div>
         </div>
@@ -111,6 +111,6 @@
     <section id="storagePanel" class="panel storage side-panel side-left" aria-label="Save and Sync"><details id="saveSyncDetails" class="save-sync-details"><summary class="panel-title-row save-sync-summary"><span class="summary-title">Save / Sync</span><button class="close-panel secondary" type="button" data-close-panel>Close</button></summary><div class="save-sync-body"><p class="small">Always autosaves to browser storage. On desktop Chrome/Edge, bind a campaign JSON file in a OneDrive-synced folder.</p><div class="button-column"><button id="exportJson">Export Campaign JSON</button><button id="exportJournalRichText" class="secondary" type="button">Export Journal</button><label class="file-button">Import Campaign JSON<input id="importJson" type="file" accept=".json,application/json"></label><button id="bindFile" class="secondary">Bind Save File / OneDrive Folder</button><button id="saveBoundFile" class="secondary">Save Bound File Now</button><button id="newCampaign" class="danger">New Campaign</button></div><div class="sync-card"><h3>10-minute sync helper</h3><label><input id="autosaveBoundFile" type="checkbox">Autosave bound file every 10 minutes</label><p id="fileSupport" class="small"></p></div></div></details></section>
   </main>
   <footer><span>Standalone local app. No webserver required. Tables are original and editable in <code>tables.js</code>.</span></footer>
-  <script src="./tables.js"></script><script src="./app.js"></script>
+  <script src="./tables.js?v=20260617-leftnav-fix"></script><script src="./app.js?v=20260617-leftnav-fix"></script>
 </body>
 </html>
