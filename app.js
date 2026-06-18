@@ -4,8 +4,8 @@ root.innerHTML='';
 const filter=(state.oracleFilter||'').trim().toLowerCase();
 const oracleGroups=[
 {title:'Core Oracles',children:['Core Oracles']},
-{title:'Situations',children:['Campaign','Plot Engine','Missions','Miscellaneous','Danger Situations','Fear and Dread','Conflict Architecture']},
-{title:'NPCs and Orgs',children:['Characters','Factions','Space Encounters','Creatures']},
+{title:'Situations',children:['Campaign','Plot Engine','Missions','Miscellaneous','Danger Situations','Space Encounters','Fear and Dread','Conflict Architecture']},
+{title:'NPCs and Orgs',children:['Characters','Factions','Creatures']},
 {title:'Locations',children:['Settlements','Location Themes','Colonies and Expeditions','Districts','Starships','Derelicts','Planets','Vaults / Ruins']}
 ];
 const matches=(key,value,path)=>{
