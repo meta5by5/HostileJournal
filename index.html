@@ -48,7 +48,7 @@
           <h2>Scene Draft</h2>
           <div class="mini-buttons">
             <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output"><img class="button-inline-icon" src="./copy-icon.png" alt=""></button>
-            <button id="addCurrentToJournal" class="secondary compact-button" type="button"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""> Add to Journal</button>
+            <button id="addCurrentToJournal" class="secondary compact-button icon-only-button" type="button" title="Add to Journal" aria-label="Add to Journal"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""></button>
           </div>
         </div>
         <article id="sceneCard" class="scene-card empty">Generate a scene to begin.</article>
@@ -63,28 +63,29 @@
         </div>
         <div id="journalList" class="journal-list"></div>
         <label>Comment</label>
-        <div class="comment-action-row comment-action-row-right">
-          <button id="commentDiceRollButton" class="secondary icon-button" type="button" title="Roll Starforged dice" aria-label="Roll Starforged dice">🎲</button>
-          <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor"><img class="button-inline-icon" src="./delete-icon.png" alt=""></button>
-          <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment">💬</button>
-        </div>
-        <div class="format-toolbar" data-editor-toolbar="journalCommentEditor">
-          <button type="button" class="icon-button secondary" data-format="bold" title="Bold" aria-label="Bold">𝗕</button>
-          <button type="button" class="icon-button secondary" data-format="italic" title="Italic" aria-label="Italic">𝘐</button>
-          <button type="button" class="icon-button secondary" data-format="insertUnorderedList" title="Bullet list" aria-label="Bullet list">•</button>
-          <button type="button" class="icon-button secondary" data-format="insertOrderedList" title="Numbered list" aria-label="Numbered list">☷</button>
-          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="blockquote" title="Quote" aria-label="Quote">❝</button>
-          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="h2" title="Header" aria-label="Header">▣</button>
-          <button type="button" class="icon-button secondary" data-format="indent" title="Indent" aria-label="Indent">⇥</button>
-          <button type="button" class="icon-button secondary" data-format="outdent" title="Outdent" aria-label="Outdent">⇤</button>
-          <label class="icon-button secondary image-upload-button" title="Insert image" aria-label="Insert image">🖼<input type="file" accept="image/*" data-image-target="journalCommentEditor"></label>
+        <div class="comment-tools-row">
+          <div class="format-toolbar compact-comment-toolbar" data-editor-toolbar="journalCommentEditor">
+            <button type="button" class="icon-button secondary" data-format="bold" title="Bold" aria-label="Bold">𝗕</button>
+            <button type="button" class="icon-button secondary" data-format="italic" title="Italic" aria-label="Italic">𝘐</button>
+            <button type="button" class="icon-button secondary" data-format="insertUnorderedList" title="Bullet list" aria-label="Bullet list">•</button>
+            <button type="button" class="icon-button secondary" data-format="insertOrderedList" title="Numbered list" aria-label="Numbered list">☷</button>
+            <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="blockquote" title="Quote" aria-label="Quote">❝</button>
+            <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="h2" title="Header" aria-label="Header">▣</button>
+            <button type="button" class="icon-button secondary" data-format="indent" title="Indent" aria-label="Indent">⇥</button>
+            <button type="button" class="icon-button secondary" data-format="outdent" title="Outdent" aria-label="Outdent">⇤</button>
+            <label class="icon-button secondary image-upload-button" title="Insert image" aria-label="Insert image">🖼<input type="file" accept="image/*" data-image-target="journalCommentEditor"></label>
+          </div>
+          <div class="comment-action-row comment-action-row-right">
+            <button id="commentDiceRollButton" class="secondary icon-button" type="button" title="Roll Starforged dice" aria-label="Roll Starforged dice">🎲</button>
+            <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor"><img class="button-inline-icon" src="./delete-icon.png" alt=""></button>
+            <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment"><img class="button-inline-icon" src="./add-comment-icon.png" alt=""></button>
+          </div>
         </div>
         <div id="journalCommentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Add a note, interpretation, ruling, clue, or campaign comment..."></div>
       </div>
     </section>
     <section id="oraclePanel" class="panel oracle-panel side-panel side-right" aria-label="Worldbuilding Oracles">
       <div class="panel-title-row"><h2>Oracles</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
-      <h2>Table Output</h2>
       <div class="section-header oracle-actions">
         <p class="small">Oracle rolls append here until you clear them or refresh the page.</p>
         <div class="mini-buttons">
@@ -97,7 +98,7 @@
 
       <div class="section-header oracle-tree-header">
         <h2>Worldbuilding Oracles</h2>
-        <button id="collapseAllOracles" class="secondary icon-button" type="button" title="Collapse all Oracles" aria-label="Collapse all Oracle sections">▴▴</button>
+        <button id="collapseAllOracles" class="secondary icon-button" type="button" title="Collapse all Oracles" aria-label="Collapse all Oracle sections"><img class="button-inline-icon" src="./collapse-oracles-icon.png" alt=""></button>
       </div>
       <p class="small">Open folders by category, then roll a whole table or individual nested table.</p>
       <label class="oracle-filter-label">Filter Oracles<input id="oracleFilter" type="search" placeholder="Search oracle groups and tables..."></label>
@@ -144,7 +145,7 @@
       <div class="button-row living-ship-actions lynx-actions lynx-actions-single">
         <button id="lynxGenerate" type="button">🎲 Generate Ship</button>
         <button id="lynxEvent" class="secondary" type="button">⚡ Gameplay Event</button>
-        <button id="lynxToJournal" class="secondary" type="button"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""> Add to Journal Editor</button>
+        <button id="lynxToJournal" class="secondary icon-only-button" type="button" title="Add to Journal Editor" aria-label="Add to Journal Editor"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""></button>
         <button id="lynxClearOutput" class="secondary" type="button"><img class="button-inline-icon" src="./delete-icon.png" alt=""> Clear</button>
       </div>
       <article id="lynxOutput" class="living-ship-output lynx-output">Configure the Lynx generator, then generate a modular ship interior.</article>
@@ -185,13 +186,13 @@
     <article id="sfRollToastCard" class="sf-roll-card sf-roll-card-toast">
       <div class="sf-roll-left">
         <div class="sf-roll-stat" id="sfToastStat">EDGE</div>
-        <div class="sf-roll-action-line"><span class="sf-die-icon">◇</span><span id="sfToastActionFormula">2 + 2 = 4</span></div>
-        <div class="sf-roll-challenges"><span class="sf-die-icon">◇</span><span id="sfToastChallengeDice">9, 7</span></div>
+        <div class="sf-roll-action-line"><img class="sf-die-icon sf-d6-icon" src="./d6.png" alt="d6"><span id="sfToastActionFormula">2 + 2 = 4</span></div>
+        <div class="sf-roll-challenges"><img class="sf-die-icon sf-d10-icon" src="./d10.jpg" alt="d10"><span id="sfToastChallengeDice">9, 7</span></div>
       </div>
       <div class="sf-roll-outcome" id="sfToastOutcome">MISS</div>
     </article>
   </div>
   <footer><span>Standalone local app. No webserver required. Tables are original and editable in <code>tables.js</code>.</span></footer>
-  <script src="./tables.js?v=20260621-settings-tabs-icons"></script><script src="./app.js?v=20260621-settings-tabs-icons"></script>
+  <script src="./tables.js?v=20260621-compact-dice-ui"></script><script src="./app.js?v=20260621-compact-dice-ui"></script>
 </body>
 </html>

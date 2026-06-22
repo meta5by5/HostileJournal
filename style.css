@@ -1006,3 +1006,201 @@ button.danger,
 #advanceOnly::after {
   display: none;
 }
+
+
+/* 2026-06 compact icon sizing and button width patch */
+.button-inline-icon,
+.tab-icon img,
+img.tab-icon,
+.icon-button img,
+button img,
+.entity-action-icon,
+.icon-img-delete,
+.icon-img-edit {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  object-fit: contain;
+  vertical-align: middle;
+}
+button,
+.file-button {
+  max-width: 150px;
+}
+.button-column button,
+.button-column .file-button {
+  width: 100%;
+  max-width: 150px;
+}
+.sf-roll-card img,
+.entity-photo-frame img,
+.rich-editor img,
+.journal-entry img {
+  max-width: 100%;
+}
+
+/* 2026-06 dice/icon/header alignment patch */
+.app-header{
+  padding:.45rem .75rem!important;
+  min-height:0;
+  align-items:center!important;
+  gap:.75rem!important;
+}
+.app-header > div:first-child{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  min-width:0;
+}
+.app-header h1{
+  margin:0!important;
+  font-size:1.2rem!important;
+  line-height:1.15!important;
+  white-space:nowrap;
+}
+.app-header p{
+  margin:0!important;
+  font-size:.82rem!important;
+  line-height:1.2!important;
+  display:flex;
+  align-items:center;
+  color:var(--muted);
+}
+.header-actions{display:flex;align-items:center;gap:.5rem;flex:0 0 auto;}
+.status-pill{padding:.32rem .55rem!important;font-size:.8rem!important;}
+.settings-gear{margin:0!important;}
+.button-row,
+.mini-buttons,
+.entity-title-actions,
+.sf-roll-actions,
+.sf-roll-footer,
+.living-ship-actions{
+  justify-content:flex-start!important;
+  align-items:center!important;
+}
+.button-row button,
+.mini-buttons button,
+.entity-title-actions button,
+.sf-roll-actions button,
+.sf-roll-footer button,
+.living-ship-actions button{
+  flex:0 0 auto;
+}
+.sf-die-icon{
+  width:20px!important;
+  height:20px!important;
+  max-width:20px!important;
+  max-height:20px!important;
+  object-fit:contain;
+  display:inline-block;
+  vertical-align:middle;
+  filter:none!important;
+  background:transparent;
+}
+.ship-logo-img,
+img[src$="ship-generator-icon.png"]{
+  width:20px!important;
+  height:20px!important;
+  max-width:20px!important;
+  max-height:20px!important;
+  object-fit:contain;
+  filter:none!important;
+  background:transparent;
+}
+@media(max-width:700px){
+  .app-header > div:first-child{display:block;}
+  .app-header h1{white-space:normal;}
+  .app-header p{font-size:.75rem!important;margin-top:.1rem!important;}
+}
+
+/* 20260621 compact journal toolbar and dice icon patch */
+.center-tabs,
+.button-row,
+.mini-buttons,
+.sf-roll-actions,
+.sf-roll-footer,
+.lynx-actions,
+.living-ship-actions {
+  justify-content: flex-start !important;
+  align-items: center;
+}
+.center-tabs {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: nowrap;
+}
+.center-tabs .tab-button {
+  width: auto;
+  max-width: 150px;
+  flex: 0 0 auto;
+}
+.comment-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .35rem;
+  flex-wrap: nowrap;
+  margin: .25rem 0 .4rem;
+}
+.comment-tools-row .format-toolbar,
+.compact-comment-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .25rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+}
+.comment-tools-row .comment-action-row {
+  flex: 0 0 auto;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+.comment-tools-row .icon-button,
+.compact-comment-toolbar .icon-button,
+.compact-comment-toolbar.image-upload-button,
+.compact-comment-toolbar .image-upload-button {
+  width: 2rem !important;
+  min-width: 2rem !important;
+  max-width: 2rem !important;
+  height: 2rem !important;
+  padding: .25rem !important;
+  margin: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sf-die-icon,
+.sf-d6-icon,
+.sf-d10-icon {
+  width: 20px !important;
+  height: 20px !important;
+  object-fit: contain;
+  flex: 0 0 20px;
+  background: transparent;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+.sf-d6-icon {
+  border-radius: 2px;
+}
+.sf-d10-icon {
+  border-radius: 2px;
+}
+.oracle-panel > h2:first-of-type {
+  display: none !important;
+}
+@media (max-width: 720px) {
+  .comment-tools-row { gap: .25rem; }
+  .compact-comment-toolbar { max-width: calc(100vw - 9rem); }
+}
+
+/* Icon-only action buttons */
+.icon-only-button{width:36px;min-width:36px;max-width:36px;padding:6px;justify-content:center;gap:0;}
+.icon-only-button .button-inline-icon,.icon-button .button-inline-icon{width:20px;height:20px;object-fit:contain;}
