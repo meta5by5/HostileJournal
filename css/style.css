@@ -1574,3 +1574,161 @@ footer{display:none!important;}
   color:#07111f!important;
   opacity:.85!important;
 }
+
+
+/* Entity Tracker refinements */
+.entity-tags,
+.entity-tag-list,
+.entity-directory-tags,
+.entity-card-tags,
+.entity-tags-row,
+.entity-tag-pills,
+.tag-pills,
+.tag-list,
+.entity-pill-list {
+  font-size: 0.72rem !important;
+  line-height: 1.15 !important;
+}
+
+.entity-tags .tag,
+.entity-tag-list .tag,
+.entity-directory-tags .tag,
+.entity-card-tags .tag,
+.entity-tags-row .tag,
+.entity-tag-pills .tag,
+.tag-pills .tag,
+.tag-list .tag,
+.entity-pill-list .tag,
+.entity-tag,
+.tag-pill,
+.entity-directory-tag {
+  font-size: 0.68rem !important;
+  line-height: 1.1 !important;
+  padding: 1px 5px !important;
+}
+
+.entity-hyperlinks,
+.entity-links,
+.entity-link-row,
+.entity-url-row,
+.entity-link-list,
+.entity-card-links {
+  display: block !important;
+  width: 100% !important;
+  clear: both !important;
+  margin-top: 0.35rem !important;
+  order: 3 !important;
+}
+
+.entity-meta,
+.entity-header-meta,
+.entity-title-meta,
+.entity-name-block,
+.entity-summary-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.entity-tags,
+.entity-tag-list,
+.entity-card-tags,
+.entity-tags-row,
+.entity-tag-pills,
+.tag-pills,
+.tag-list {
+  order: 2 !important;
+}
+
+.entity-hyperlinks,
+.entity-links,
+.entity-link-row,
+.entity-url-row,
+.entity-link-list,
+.entity-card-links {
+  order: 3 !important;
+}
+
+/* Recent entity breadcrumbs: transparent, no border, white text */
+.entity-breadcrumbs a,
+.entity-recent-tabs a,
+.entity-history-tabs a,
+.recent-entities a,
+.entity-recent-link,
+.entity-history-link,
+.entity-breadcrumb-link,
+.entity-back-stack a,
+.entity-trail a {
+  background: transparent !important;
+  border: 0 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+.entity-breadcrumbs a:hover,
+.entity-recent-tabs a:hover,
+.entity-history-tabs a:hover,
+.recent-entities a:hover,
+.entity-recent-link:hover,
+.entity-history-link:hover,
+.entity-breadcrumb-link:hover,
+.entity-back-stack a:hover,
+.entity-trail a:hover {
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+
+/* Explicit Entity Tracker style fixes */
+.entity-tag-chip{
+  font-size:.68rem!important;
+  padding:.12rem .2rem .12rem .42rem!important;
+  gap:.22rem!important;
+  line-height:1.05!important;
+}
+.entity-tag-chip .entity-icon-img{width:.8rem!important;height:.8rem!important}
+.entity-tag-remove{
+  width:1rem!important;height:1rem!important;min-width:1rem!important;
+  font-size:.7rem!important;
+}
+.entity-links-field{
+  display:block!important;
+  margin-top:.45rem!important;
+  clear:both!important;
+}
+.entity-nav-row .entity-history-tabs{
+  display:flex!important;
+  align-items:center!important;
+  gap:.45rem!important;
+  background:transparent!important;
+  border:0!important;
+}
+.entity-nav-row .entity-history-tab,
+.entity-history-tab.entity-history-link,
+button.entity-history-tab{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:#ffffff!important;
+  padding:0!important;
+  margin:0 .35rem 0 0!important;
+  border-radius:0!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  font-size:.88rem!important;
+  font-weight:600!important;
+  line-height:1.2!important;
+  text-decoration:none!important;
+}
+.entity-nav-row .entity-history-tab:hover,
+.entity-history-tab.entity-history-link:hover,
+button.entity-history-tab:hover{
+  background:transparent!important;
+  color:#ffffff!important;
+  text-decoration:underline!important;
+}

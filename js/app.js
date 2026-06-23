@@ -312,10 +312,10 @@ function renderEntityActiveCard(){
   const availableTags=tagRowsForType(ent.type).filter(t=>!ent.tags.includes(t.key));
   const tagOptions=availableTags.map(t=>`<option value="${escapeHtml(t.label)}" data-key="${escapeHtml(t.key)}"></option>`).join('');
   const tagChips=ent.tags.map(t=>{const m=tagMeta(ent.type,t);return `<span class="entity-tag-chip">${entityIconMarkup(m.icon,m.label)}<span>${escapeHtml(m.label)}</span><button type="button" class="entity-tag-remove" data-tag="${escapeHtml(t)}" title="Remove tag">×</button></span>`}).join('');
-  const history=(es.history||[]).map(id=>entityById(id)).filter(Boolean).slice(0,5).map((h,i)=>`<button type="button" class="entity-history-tab" data-entity-id="${h.id}">${escapeHtml(h.name||ENTITY_TYPES[h.type]?.singular||'Entity')}</button>`).join('');
+  const history=(es.history||[]).map(id=>entityById(id)).filter(Boolean).slice(0,5).map((h,i)=>`<button type="button" class="entity-history-tab entity-history-link" data-entity-id="${h.id}" title="Open ${escapeHtml(h.name||ENTITY_TYPES[h.type]?.singular||'Entity')}">${escapeHtml(h.name||ENTITY_TYPES[h.type]?.singular||'Entity')}</button>`).join('');
   const rels=(ent.relationships||[]).map(r=>{const target=entityById(r.id); if(!target)return ''; return `<li class="entity-rel-row"><button type="button" class="entity-rel-link" data-entity-id="${target.id}"><span class="entity-glyph">${entityIconMarkup(entityResolvedIcon(target),target.name)}</span> ${escapeHtml(target.name||'Unnamed')}</button><input class="entity-rel-desc" data-rel-id="${target.id}" value="${escapeHtml(r.description||('Connected to '+entityDisplayName(target)))}" placeholder="Describe this entity&apos;s view of the relationship"><button type="button" class="secondary entity-rel-remove" data-rel-id="${target.id}" title="Remove relationship">×</button></li>`}).join('');
   card.innerHTML=`<div class="entity-nav-row"><button id="entityBack" type="button" class="secondary entity-back" title="Back">←</button><div class="entity-history-tabs">${history}</div></div>
-  <div class="entity-main-drop"><div class="entity-identity-grid"><div class="entity-identity-fields"><div class="entity-form-head entity-form-head-compact"><div class="entity-head-fields"><label>Name<input id="entityName" value="${escapeHtml(ent.name||'')}"></label><label>Type<select id="entityType">${typeOptions}</select></label></div><button id="entityRemove" type="button" class="secondary entity-delete">Remove</button></div><label>Hyperlinks<textarea id="entityLinks" rows="2" placeholder="Paste relevant links, one per line.">${escapeHtml(ent.links||'')}</textarea></label><label>Relationship description<input id="entityRelationshipDescription" value="${escapeHtml(ent.relationshipDescription||'')}" placeholder="How this entity tends to connect to scenes or other entities"></label><div class="entity-tag-panel"><div class="entity-tag-row">${tagChips||'<span class="small">No tags yet.</span>'}</div><div class="entity-tag-add"><input id="entityTagInput" list="entityTagOptions" placeholder="Choose existing tag or type a new tag"><datalist id="entityTagOptions">${tagOptions}</datalist><button id="entityAddTag" type="button" class="secondary compact-button">Add tag</button></div></div><section class="entity-relationships compact-rels"><div class="section-header"><h3>Relationship Outline</h3><button id="entityAddRelated" type="button" class="secondary compact-button">Add Existing</button></div><ul class="entity-rel-list">${rels||'<li class="small">No relationships yet. Drag an entity from the directory onto this card or use Add Existing.</li>'}</ul></section></div><label class="entity-photo-picker" title="Click to choose an entity picture"><span>Thumbnail</span><div class="entity-photo-frame">${entityIconMarkup(entityResolvedIcon(ent),ent.name)}</div><input id="entityThumbnailInput" type="file" accept="image/*"></label></div><label>Overview description</label>${makeTextareaToolbar('entityOverview')}<textarea id="entityOverview" rows="4" placeholder="Who or what this is, what it wants, and how it appears in play.">${escapeHtml(ent.overview||'')}</textarea>
+  <div class="entity-main-drop"><div class="entity-identity-grid"><div class="entity-identity-fields"><div class="entity-form-head entity-form-head-compact"><div class="entity-head-fields"><label>Name<input id="entityName" value="${escapeHtml(ent.name||'')}"></label><label>Type<select id="entityType">${typeOptions}</select></label></div><button id="entityRemove" type="button" class="secondary entity-delete">Remove</button></div><label>Relationship description<input id="entityRelationshipDescription" value="${escapeHtml(ent.relationshipDescription||'')}" placeholder="How this entity tends to connect to scenes or other entities"></label><div class="entity-tag-panel"><div class="entity-tag-row">${tagChips||'<span class="small">No tags yet.</span>'}</div><div class="entity-tag-add"><input id="entityTagInput" list="entityTagOptions" placeholder="Choose existing tag or type a new tag"><datalist id="entityTagOptions">${tagOptions}</datalist><button id="entityAddTag" type="button" class="secondary compact-button">Add tag</button></div></div><label class="entity-links-field">Hyperlinks<textarea id="entityLinks" rows="2" placeholder="Paste relevant links, one per line.">${escapeHtml(ent.links||'')}</textarea></label><section class="entity-relationships compact-rels"><div class="section-header"><h3>Relationship Outline</h3><button id="entityAddRelated" type="button" class="secondary compact-button">Add Existing</button></div><ul class="entity-rel-list">${rels||'<li class="small">No relationships yet. Drag an entity from the directory onto this card or use Add Existing.</li>'}</ul></section></div><label class="entity-photo-picker" title="Click to choose an entity picture"><span>Thumbnail</span><div class="entity-photo-frame">${entityIconMarkup(entityResolvedIcon(ent),ent.name)}</div><input id="entityThumbnailInput" type="file" accept="image/*"></label></div><label>Overview description</label>${makeTextareaToolbar('entityOverview')}<textarea id="entityOverview" rows="4" placeholder="Who or what this is, what it wants, and how it appears in play.">${escapeHtml(ent.overview||'')}</textarea>
   <label>Revealed details</label>${makeTextareaToolbar('entityRevealed')}<textarea id="entityRevealed" rows="4" placeholder="Facts the players have discovered or confirmed.">${escapeHtml(ent.revealed||'')}</textarea></div>`;
   const bindInput=(id,field)=>{const el=$(id); if(el) el.addEventListener('input',()=>updateActiveEntityField(field,el.value));};
   bindInput('entityName','name'); bindInput('entityLinks','links'); bindInput('entityRelationshipDescription','relationshipDescription'); bindInput('entityOverview','overview'); bindInput('entityRevealed','revealed'); bindTextareaToolbars(card);
@@ -873,4 +873,126 @@ initEntityTracker();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindWorkspaceExitNav); else bindWorkspaceExitNav();
   setTimeout(bindWorkspaceExitNav,500);
+})();
+
+
+/* 2026-06-23: Native Journal/Entities JSON import/export.
+   This code lives in app.js so it updates the real closure-scoped `state` object.
+   Earlier HTML-level patch could show success while changing only window.state/localStorage. */
+(function(){
+  function jsonStamp(){return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}
+  function downloadJsonFile(name,payload){
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},0);
+  }
+  function readJsonInput(input,cb){
+    const file=input.files&&input.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{cb(JSON.parse(String(reader.result||'{}')))}
+      catch(e){alert('Import failed: that file is not valid JSON.'); console.error(e);}
+      input.value='';
+    };
+    reader.onerror=()=>{alert('Import failed: could not read file.'); input.value='';};
+    reader.readAsText(file);
+  }
+  function normalizeImportedEntities(data){
+    let entities=data && (data.entities || data.entityRecords || data);
+    if(Array.isArray(entities)) entities={items:entities,activeId:entities[0]?.id||null,history:[]};
+    if(!entities || typeof entities!=='object') return null;
+    if(!Array.isArray(entities.items)){
+      if(Array.isArray(entities.entities)) entities.items=entities.entities;
+      else {
+        const vals=Object.values(entities).filter(v=>v&&typeof v==='object'&&('name' in v || 'type' in v));
+        entities={items:vals,activeId:vals[0]?.id||null,history:[]};
+      }
+    }
+    entities.items=(entities.items||[]).map((e,i)=>{
+      const ent={...e};
+      ent.id=String(ent.id||('ent_import_'+Date.now().toString(36)+'_'+i));
+      ent.type=String(ent.type||'asset').toLowerCase();
+      if(ent.type==='person'||ent.type==='character') ent.type='npc';
+      if(!['npc','location','faction','asset'].includes(ent.type)) ent.type='asset';
+      ent.name=ent.name||('Imported '+ent.type);
+      if(!Array.isArray(ent.relationships)) ent.relationships=[];
+      ent.relationships=ent.relationships.map(r=>{
+        if(typeof r==='string') return {id:r,description:''};
+        return {id:String(r.id||r.targetId||r.entityId||''),description:r.description||r.note||r.relationshipDescription||''};
+      }).filter(r=>r.id);
+      if(!Array.isArray(ent.tags)) ent.tags=[];
+      ent.links=ent.links||'';
+      ent.overview=ent.overview||'';
+      ent.revealed=ent.revealed||'';
+      ent.relationshipDescription=ent.relationshipDescription||'';
+      ent.thumbnailImage=ent.thumbnailImage||'';
+      ent.thumbnail=ent.thumbnailImage?('img:'+ent.thumbnailImage):(ent.thumbnail||'◇');
+      return ent;
+    });
+    entities.activeId=entities.activeId && entities.items.some(e=>e.id===entities.activeId) ? entities.activeId : (entities.items[0]?.id||null);
+    entities.history=Array.isArray(entities.history)?entities.history.filter(id=>entities.items.some(e=>e.id===id)):[];
+    return entities;
+  }
+  function exportJournalJson(){
+    downloadJsonFile('hostilejournal-journal-'+jsonStamp()+'.json',{
+      type:'hostilejournal.journal',
+      version:1,
+      exportedAt:new Date().toISOString(),
+      journal:Array.isArray(state.journal)?state.journal:[]
+    });
+  }
+  function importJournalJson(input){
+    readJsonInput(input,data=>{
+      const journal=Array.isArray(data)?data:(data.journal||data.journalEntries||data.entries);
+      if(!Array.isArray(journal)){alert('Import failed: no journal array found.');return;}
+      state.journal=journal;
+      saveState(); renderJournal(); render();
+      alert('Imported '+journal.length+' journal entries.');
+    });
+  }
+  function exportEntitiesJson(){
+    const es=ensureEntityState();
+    downloadJsonFile('hostilejournal-entities-'+jsonStamp()+'.json',{
+      type:'hostilejournal.entities',
+      version:1,
+      exportedAt:new Date().toISOString(),
+      entities:es,
+      relationships:{}
+    });
+  }
+  function importEntitiesJson(input){
+    readJsonInput(input,data=>{
+      const imported=normalizeImportedEntities(data);
+      if(!imported || !Array.isArray(imported.items)){alert('Import failed: no entity list found.');return;}
+      state.entities=imported;
+      pruneUnusedEntityTags();
+      // Rebuild catalog from imported tags so dropdowns immediately work.
+      state.entityTagCatalog={npc:[],location:[],faction:[],asset:[]};
+      imported.items.forEach(ent=>{
+        (ent.tags||[]).forEach(tag=>{
+          if(!state.entityTagCatalog[ent.type]) state.entityTagCatalog[ent.type]=[];
+          if(!state.entityTagCatalog[ent.type].some(t=>t.key===tag)){
+            state.entityTagCatalog[ent.type].unshift({key:tag,label:String(tag).replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),icon:'◇'});
+          }
+        });
+      });
+      ensureReciprocalEntityRelationships();
+      saveState();
+      renderEntityTracker();
+      render();
+      alert('Imported '+imported.items.length+' entities.');
+    });
+  }
+  function bindJsonArchiveButtons(){
+    const ej=$('exportJournalJson'), ij=$('importJournalJson'), ee=$('exportEntitiesJson'), ie=$('importEntitiesJson');
+    if(ej&&!ej.dataset.nativeJsonBound){ej.dataset.nativeJsonBound='1';ej.addEventListener('click',exportJournalJson);}
+    if(ij&&!ij.dataset.nativeJsonBound){ij.dataset.nativeJsonBound='1';ij.addEventListener('change',()=>importJournalJson(ij));}
+    if(ee&&!ee.dataset.nativeJsonBound){ee.dataset.nativeJsonBound='1';ee.addEventListener('click',exportEntitiesJson);}
+    if(ie&&!ie.dataset.nativeJsonBound){ie.dataset.nativeJsonBound='1';ie.addEventListener('change',()=>importEntitiesJson(ie));}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindJsonArchiveButtons);else bindJsonArchiveButtons();
+  setTimeout(bindJsonArchiveButtons,500);
 })();
