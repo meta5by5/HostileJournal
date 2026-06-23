@@ -4,27 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Hostile Sci-fi Worldbuilder</title>
-  <link rel="stylesheet" href="./css/style.css?v=20260621-tags-cleanfix">
+  <link rel="stylesheet" href="./style.css?v=20260621-tags-cleanfix">
 </head>
 <body>
   <header class="app-header"><div><h1>Hostile Sci-fi Worldbuilder</h1><p>Offline-first scene chaining, worldbuilding tables, districts, factions, planets, derelicts, missions, and conflict architecture.</p></div><div class="header-actions"><div class="status-pill" id="saveStatus">Loading…</div><button id="openSettings" class="settings-gear" type="button" title="Settings" aria-label="Open settings">⚙</button></div></header>
-  <nav class="mobile-panel-tabs top-nav" aria-label="Panel controls">
-    <button id="openEntityListPanel" type="button" aria-controls="entityListPanel" title="Entities"><span class="top-nav-icon">☷</span><span class="top-nav-label">Entities</span></button>
-    <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkPanel" title="Crew"><img class="top-nav-icon-img" src="./img/crew-link-icon.png" alt=""><span class="top-nav-label">Crew</span></button>
-    <button id="showJournalNav" type="button" aria-controls="outputPanel" title="Journal"><span class="top-nav-icon">🖋</span><span class="top-nav-label">Journal</span></button>
-    <button id="openOraclePanel" type="button" aria-controls="oraclePanel" title="Oracle"><span class="top-nav-icon">🎲</span><span class="top-nav-label">Oracle</span></button>
-    <button id="openControlsPanel" type="button" aria-controls="controlsPanel" title="Builder"><span class="top-nav-icon">🎞️</span><span class="top-nav-label">Builder</span></button>
-    <button id="showSceneElementsNav" type="button" aria-controls="outputPanel" title="Elements"><span class="top-nav-icon">▤</span><span class="top-nav-label">Elements</span></button>
-    <button id="openLivingShipPanel" type="button" aria-controls="livingShipPanel" title="Ship"><img class="top-nav-icon-img" src="./img/ship-generator-icon.png" alt=""><span class="top-nav-label">Ship</span></button>
+  <nav class="mobile-panel-tabs" aria-label="Mobile panel controls">
+    <button id="openControlsPanel" type="button" aria-controls="controlsPanel">Builder</button>
+    <button id="focusOutputPanel" type="button" aria-controls="outputPanel">Output</button>
+    <button id="openOraclePanel" type="button" aria-controls="oraclePanel">Oracles</button>
+    <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkPanel">Crew</button>
+    <button id="openLivingShipPanel" type="button" aria-controls="livingShipPanel">Ship</button>
+    <button id="openEntityTrackerPanel" type="button" aria-controls="entityTrackerPanel">Entities</button>
   </nav>
   <div id="panelBackdrop" class="panel-backdrop" hidden></div>
   <main class="layout">
-    <section id="controlsPanel" class="panel controls left-view side-panel side-left" aria-label="Scene Builder">
+    <section id="controlsPanel" class="panel controls left-view active-left-view side-panel side-left" aria-label="Scene Builder">
       <div class="left-tabs" role="tablist" aria-label="Left section views">
-        <button class="left-tab-button" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./img/crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./img/ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="entityList" title="Entity Directory"><span class="tab-icon">☷</span><span class="tab-label">Entity Directory</span></button>
+        <button class="left-tab-button active" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="entity" title="Entity Tracker"><span class="tab-icon">⬢</span><span class="tab-label">Entity Tracker</span></button>
       </div>
       <div class="panel-title-row"><h2>Scene Builder</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <label>Campaign / Region<input id="campaignName" placeholder="Frontier Reach, company route, colonial sector..."></label>
@@ -38,21 +37,18 @@
       <div class="button-row"><button id="generateMission" type="button" class="secondary">Mission Seed</button><button id="generateWorld" type="button" class="secondary">World Seed</button></div>
       <details open><summary>Continuity Rules</summary><div class="rules"><label><input id="useContinuity" type="checkbox">Reuse previous scene elements</label><label><input id="escalateOnComplication" type="checkbox">Escalate after complications</label><label><input id="useConflictArchitecture" type="checkbox">Add stakes, opposition logic, and meaningful choice</label><label>Mission Seed<textarea id="missionSeed" rows="4" placeholder="Generate or paste the current mission seed here for continuity reference."></textarea></label><label>World Seed<textarea id="worldSeed" rows="4" placeholder="Generate or paste the current world / colony seed here for continuity reference."></textarea></label></div></details>
     </section>
-    <section id="outputPanel" class="panel output" aria-label="Scene Elements and Journal">
-      <div class="center-top-row">
-        <h2 id="centerSectionTitle">Journal</h2>
-        <div class="center-tabs" role="tablist" aria-label="Center section tabs">
-          <button id="showOutputTab" class="tab-button" type="button">Scene Elements</button>
-          <button id="showJournalTab" class="tab-button active" type="button">Journal</button>
-        </div>
+    <section id="outputPanel" class="panel output" aria-label="Scene Draft and Journal">
+      <div class="center-tabs" role="tablist" aria-label="Center section tabs">
+        <button id="showOutputTab" class="tab-button active" type="button">Scene Draft</button>
+        <button id="showJournalTab" class="tab-button" type="button">Journal</button>
       </div>
 
       <div id="currentOutputView" class="center-view active-view">
         <div class="section-header">
-          <h2>Scene Elements</h2>
+          <h2>Scene Draft</h2>
           <div class="mini-buttons">
-            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output"><img class="button-inline-icon" src="./img/copy-icon.png" alt=""></button>
-            <button id="addCurrentToJournal" class="secondary compact-button icon-only-button" type="button" title="Add to Journal" aria-label="Add to Journal"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
+            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output"><img class="button-inline-icon" src="./copy-icon.png" alt=""></button>
+            <button id="addCurrentToJournal" class="secondary compact-button icon-only-button" type="button" title="Add to Journal" aria-label="Add to Journal"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""></button>
           </div>
         </div>
         <article id="sceneCard" class="scene-card empty">Generate a scene to begin.</article>
@@ -62,6 +58,9 @@
       </div>
 
       <div id="journalView" class="center-view">
+        <div class="section-header">
+          <h2>Journal</h2>
+        </div>
         <div id="journalList" class="journal-list"></div>
         <label>Comment</label>
         <div class="comment-tools-row">
@@ -78,8 +77,8 @@
           </div>
           <div class="comment-action-row comment-action-row-right">
             <button id="commentDiceRollButton" class="secondary icon-button" type="button" title="Roll Starforged dice" aria-label="Roll Starforged dice">🎲</button>
-            <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor"><img class="button-inline-icon" src="./img/delete-icon.png" alt=""></button>
-            <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment"><img class="button-inline-icon" src="./img/add-comment-icon.png" alt=""></button>
+            <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor"><img class="button-inline-icon" src="./delete-icon.png" alt=""></button>
+            <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment"><img class="button-inline-icon" src="./add-comment-icon.png" alt=""></button>
           </div>
         </div>
         <div id="journalCommentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Add a note, interpretation, ruling, clue, or campaign comment..."></div>
@@ -90,27 +89,28 @@
       <div class="section-header oracle-actions">
         <p class="small">Oracle rolls append here until you clear them or refresh the page.</p>
         <div class="mini-buttons">
-          <button id="copyOracleOutput" class="secondary icon-button" type="button" title="Copy" aria-label="Copy table output"><img class="button-inline-icon" src="./img/copy-icon.png" alt=""></button>
-          <button id="appendOracleToJournal" class="secondary icon-button" type="button" title="Add to Journal for edit" aria-label="Add to Journal for edit"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
-          <button id="clearOracleOutput" class="secondary icon-button" type="button" title="Clear" aria-label="Clear table output"><img class="button-inline-icon" src="./img/delete-icon.png" alt=""></button>
+          <button id="copyOracleOutput" class="secondary icon-button" type="button" title="Copy" aria-label="Copy table output"><img class="button-inline-icon" src="./copy-icon.png" alt=""></button>
+          <button id="appendOracleToJournal" class="secondary icon-button" type="button" title="Add to Journal for edit" aria-label="Add to Journal for edit"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""></button>
+          <button id="clearOracleOutput" class="secondary icon-button" type="button" title="Clear" aria-label="Clear table output"><img class="button-inline-icon" src="./delete-icon.png" alt=""></button>
         </div>
       </div>
       <div id="oracleOutput" class="oracle-output" contenteditable="true" role="textbox" aria-multiline="true">Roll from the table tree.</div>
 
       <div class="section-header oracle-tree-header">
         <h2>Worldbuilding Oracles</h2>
+        <button id="collapseAllOracles" class="secondary icon-button" type="button" title="Collapse all Oracles" aria-label="Collapse all Oracle sections"><img class="button-inline-icon" src="./collapse-oracles-icon.png" alt=""></button>
       </div>
       <p class="small">Open folders by category, then roll a whole table or individual nested table.</p>
-      <div class="oracle-filter-row"><label class="oracle-filter-label">Filter Oracles<input id="oracleFilter" type="search" placeholder="Search oracle groups and tables..."></label><button id="collapseAllOracles" class="secondary icon-button" type="button" title="Collapse all Oracles" aria-label="Collapse all Oracle sections"><img class="button-inline-icon" src="./img/collapse-oracles-icon.png" alt=""></button></div>
+      <label class="oracle-filter-label">Filter Oracles<input id="oracleFilter" type="search" placeholder="Search oracle groups and tables..."></label>
       <div id="oracleTree"></div>
     </section>
 
     <section id="crewLinkPanel" class="panel controls left-view crew-link-panel side-panel side-left" aria-label="Starforged Crew Link">
       <div class="left-tabs" role="tablist" aria-label="Left section views">
         <button class="left-tab-button" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
-        <button class="left-tab-button active" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./img/crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./img/ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="entityList" title="Entity Directory"><span class="tab-icon">☷</span><span class="tab-label">Entity Directory</span></button>
+        <button class="left-tab-button active" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="entity" title="Entity Tracker"><span class="tab-icon">⬢</span><span class="tab-label">Entity Tracker</span></button>
       </div>
       <div class="panel-title-row"><h2>Crew Link</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <iframe title="Starforged Crew Link" src="https://starforged-crew-link.scottbenton.dev/" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -118,9 +118,9 @@
     <section id="livingShipPanel" class="panel controls left-view living-ship-panel side-panel side-left" aria-label="Lynx-Class Ship Procedural Generator">
       <div class="left-tabs" role="tablist" aria-label="Left section views">
         <button class="left-tab-button" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./img/crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
-        <button class="left-tab-button active" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./img/ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="entityList" title="Entity Directory"><span class="tab-icon">☷</span><span class="tab-label">Entity Directory</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
+        <button class="left-tab-button active" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="entity" title="Entity Tracker"><span class="tab-icon">⬢</span><span class="tab-label">Entity Tracker</span></button>
       </div>
       <div class="panel-title-row"><h2>🚀 Ship Generator</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <p class="small">Browser version of a Foundry VTT-style ship generator: configure a ship preset, generate decks/zones/hazards, then copy or send it to the Journal for final editing.</p>
@@ -145,41 +145,27 @@
       <div class="button-row living-ship-actions lynx-actions lynx-actions-single">
         <button id="lynxGenerate" type="button">🎲 Generate Ship</button>
         <button id="lynxEvent" class="secondary" type="button">⚡ Gameplay Event</button>
-        <button id="lynxToJournal" class="secondary icon-only-button" type="button" title="Add to Journal Editor" aria-label="Add to Journal Editor"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
-        <button id="lynxClearOutput" class="secondary" type="button"><img class="button-inline-icon" src="./img/delete-icon.png" alt=""> Clear</button>
+        <button id="lynxToJournal" class="secondary icon-only-button" type="button" title="Add to Journal Editor" aria-label="Add to Journal Editor"><img class="button-inline-icon" src="./add-journal-icon.png" alt=""></button>
+        <button id="lynxClearOutput" class="secondary" type="button"><img class="button-inline-icon" src="./delete-icon.png" alt=""> Clear</button>
       </div>
       <article id="lynxOutput" class="living-ship-output lynx-output">Configure the Lynx generator, then generate a modular ship interior.</article>
     </section>
     <section id="entityTrackerPanel" class="panel controls left-view entity-tracker-panel side-panel side-left" aria-label="Entity Tracker">
       <div class="left-tabs" role="tablist" aria-label="Left section views">
         <button class="left-tab-button" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./img/crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./img/ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="entityList" title="Entity Directory"><span class="tab-icon">☷</span><span class="tab-label">Entity Directory</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
+        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
+        <button class="left-tab-button active" type="button" data-left-tab="entity" title="Entity Tracker"><span class="tab-icon">⬢</span><span class="tab-label">Entity Tracker</span></button>
       </div>
       <div class="panel-title-row entity-title-row"><h2><span class="entity-icon entity-icon-tracker" aria-hidden="true">⬢</span> Entity Tracker</h2><div class="entity-title-actions"><button id="entityAddGeneric" class="secondary compact-button" type="button" title="Add entity">＋ Add entity</button><button class="close-panel secondary" type="button" data-close-panel>Close</button></div></div>
       <p class="small">Track NPCs, locations, factions, and scene assets. Drag an entity from the directory onto the active card to create a relationship.</p>
       <div class="entity-tracker-grid">
-        <aside class="entity-directory-panel entity-directory-panel-left">
+        <article id="entityActiveCard" class="entity-active-card"></article>
+        <aside class="entity-directory-panel">
           <h3>Entity Directory</h3>
-          <label class="entity-filter-label">Filter Entities<input id="entityFilter" type="search" placeholder="Search entities and tags..."></label>
           <div id="entityDirectory" class="entity-directory"></div>
         </aside>
-        <article id="entityActiveCard" class="entity-active-card entity-editor-card"></article>
       </div>
-    </section>
-    <section id="entityListPanel" class="panel controls left-view entity-list-panel active-left-view side-panel side-left" aria-label="Entity Directory">
-      <div class="left-tabs" role="tablist" aria-label="Left section views">
-        <button class="left-tab-button" type="button" data-left-tab="scene" title="Scene Builder"><span class="tab-icon">🎞️</span><span class="tab-label">Scene Builder</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="crew" title="Crew Link"><img class="tab-icon crew-logo-img" src="./img/crew-link-icon.png" alt=""><span class="tab-label">Crew Link</span></button>
-        <button class="left-tab-button" type="button" data-left-tab="living" title="Ship Generator"><img class="tab-icon ship-logo-img" src="./img/ship-generator-icon.png" alt=""><span class="tab-label">Ship Generator</span></button>
-        
-        <button class="left-tab-button active" type="button" data-left-tab="entityList" title="Entity Directory"><span class="tab-icon">☷</span><span class="tab-label">Entity Directory</span></button>
-      </div>
-      <div class="panel-title-row entity-title-row"><h2><span class="entity-icon entity-icon-tracker" aria-hidden="true">☷</span> Entity Directory</h2><div class="entity-title-actions"><button class="close-panel secondary" type="button" data-close-panel>Close</button></div></div>
-      <p class="small">Search entities, drag them into editors to create entity links, or click an entity to open the editor over the workspace.</p>
-      <label class="entity-filter-label">Filter Entities<input id="entityListFilter" type="search" placeholder="Search entities and tags..."></label>
-      <div id="entityListDirectory" class="entity-directory entity-list-directory"></div>
     </section>
     <div id="settingsBackdrop" class="settings-backdrop" hidden></div>
     <aside id="settingsModal" class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
@@ -200,12 +186,13 @@
     <article id="sfRollToastCard" class="sf-roll-card sf-roll-card-toast">
       <div class="sf-roll-left">
         <div class="sf-roll-stat" id="sfToastStat">EDGE</div>
-        <div class="sf-roll-action-line"><img class="sf-die-icon sf-d6-icon" src="./img/d6.png" alt="d6"><span id="sfToastActionFormula">2 + 2 = 4</span></div>
-        <div class="sf-roll-challenges"><img class="sf-die-icon sf-d10-icon" src="./img/d10.jpg" alt="d10"><span id="sfToastChallengeDice">9, 7</span></div>
+        <div class="sf-roll-action-line"><img class="sf-die-icon sf-d6-icon" src="./d6.png" alt="d6"><span id="sfToastActionFormula">2 + 2 = 4</span></div>
+        <div class="sf-roll-challenges"><img class="sf-die-icon sf-d10-icon" src="./d10.jpg" alt="d10"><span id="sfToastChallengeDice">9, 7</span></div>
       </div>
       <div class="sf-roll-outcome" id="sfToastOutcome">MISS</div>
     </article>
   </div>
-  <script src="./js/tables.js?v=20260621-compact-dice-ui"></script><script src="./js/app.js?v=20260621-compact-dice-ui"></script>
+  <footer><span>Standalone local app. No webserver required. Tables are original and editable in <code>tables.js</code>.</span></footer>
+  <script src="./tables.js?v=20260621-compact-dice-ui"></script><script src="./app.js?v=20260621-compact-dice-ui"></script>
 </body>
 </html>
