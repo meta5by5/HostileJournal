@@ -333,6 +333,19 @@ function renderEntityActiveCard(){
   card.ondragleave=()=>card.classList.remove('drag-over');
   card.ondrop=e=>{e.preventDefault();card.classList.remove('drag-over');const id=e.dataTransfer.getData('text/entity-id');if(id)addRelationshipToActive(id)};
 }
+function entityDirGroupDefaultOpen(type, filter, count, directoryKey){
+  const es=ensureEntityState();
+  es.openGroups=es.openGroups||{};
+  const key=(directoryKey||'entityDirectory')+':'+type;
+  if(Object.prototype.hasOwnProperty.call(es.openGroups,key)) return !!es.openGroups[key];
+  return !!filter || count < 4;
+}
+function rememberEntityDirGroupOpen(type, directoryKey, isOpen){
+  const es=ensureEntityState();
+  es.openGroups=es.openGroups||{};
+  es.openGroups[(directoryKey||'entityDirectory')+':'+type]=!!isOpen;
+  saveState();
+}
 function renderEntityDirectoryOnly(){
   const dir=$('entityDirectory'); if(!dir)return; const es=ensureEntityState();
   const filterEl=$('entityFilter');
@@ -345,7 +358,7 @@ function renderEntityDirectoryOnly(){
       const tags=entityTagLabels(e);
       return [e.name, e.relationshipDescription, e.overview, e.revealed, tags, meta.label].some(v=>String(v||'').toLowerCase().includes(filter));
     });
-    const details=document.createElement('details'); details.open=filter||items.length<4; details.className='entity-dir-group';
+    const details=document.createElement('details'); details.open=entityDirGroupDefaultOpen(type, filter, items.length, 'entityDirectory'); details.className='entity-dir-group'; details.addEventListener('toggle',()=>rememberEntityDirGroupOpen(type,'entityDirectory',details.open));
     const summary=document.createElement('summary'); summary.className='entity-dir-summary'; const title=document.createElement('span'); title.textContent=meta.label; const add=document.createElement('button'); add.type='button'; add.className='entity-dir-add icon-button secondary'; add.title='Add '+meta.singular; add.setAttribute('aria-label','Add '+meta.singular); add.textContent='＋'; add.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();addEntity(type)}); summary.appendChild(title); summary.appendChild(add); details.appendChild(summary);
     const list=document.createElement('div'); list.className='entity-dir-list';
     items.forEach(ent=>{
@@ -370,7 +383,7 @@ function renderEntityListPanelDirectory(){
       if(!filter)return true; const tags=entityTagLabels(e);
       return [e.name,e.relationshipDescription,e.overview,e.revealed,tags,meta.label].some(v=>String(v||'').toLowerCase().includes(filter));
     });
-    const details=document.createElement('details'); details.open=filter||items.length<4; details.className='entity-dir-group';
+    const details=document.createElement('details'); details.open=entityDirGroupDefaultOpen(type, filter, items.length, 'entityListDirectory'); details.className='entity-dir-group'; details.addEventListener('toggle',()=>rememberEntityDirGroupOpen(type,'entityListDirectory',details.open));
     const summary=document.createElement('summary'); summary.className='entity-dir-summary'; const title=document.createElement('span'); title.textContent=meta.label; summary.appendChild(title); details.appendChild(summary);
     const list=document.createElement('div'); list.className='entity-dir-list';
     items.forEach(ent=>{normalizeEntityTags(ent); const btn=document.createElement('button'); btn.type='button'; btn.className='entity-dir-item'+(es.activeId===ent.id?' active':''); btn.draggable=true; btn.dataset.entityId=ent.id; btn.innerHTML=`<span class="entity-glyph">${entityIconMarkup(entityResolvedIcon(ent),ent.name)}</span><span class="entity-dir-name">${escapeHtml(ent.name||meta.singular)}</span><span class="entity-dir-tags">${escapeHtml(entityTagLabels(ent))}</span>`; btn.addEventListener('click',()=>{setActiveEntity(ent.id,true);showLeftTab('entity')}); btn.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/entity-id',ent.id);ev.dataTransfer.setData('text/plain',entityDisplayName(ent));ev.dataTransfer.effectAllowed='copy'}); list.appendChild(btn);});
@@ -537,7 +550,7 @@ initEntityTracker();
   }
   function decorateActionIcons(root=document){
     root.querySelectorAll('button[title="Copy"], button[aria-label*="Copy"], #copyScene, #copyOracleOutput, #sfCopyRoll').forEach(btn=>setIconButton(btn, COPY_ICON, 'icon-img-copy', 'Copy'));
-    root.querySelectorAll('button[title*="Add to Journal"], button[aria-label*="Add to Journal"], #addCurrentToJournal, #appendOracleToJournal, #lynxToJournal, #sfRollToJournal').forEach(btn=>setIconButton(btn, ADD_JOURNAL_ICON, 'icon-img-journal', 'Add to Journal'));
+    root.querySelectorAll('button[title*="Add to Journal"], button[aria-label*="Add to Journal"], #addCurrentToJournal, #addJournalComment, #appendOracleToJournal, #lynxToJournal, #sfRollToJournal').forEach(btn=>setIconButton(btn, ADD_JOURNAL_ICON, 'icon-img-journal', 'Add to Journal'));
     root.querySelectorAll('button[title="Edit"], button[aria-label="Edit"]').forEach(btn=>setIconButton(btn, EDIT_ICON, 'icon-img-edit', 'Edit'));
     root.querySelectorAll('button[title="Delete"], button[aria-label="Delete"], .entity-rel-remove, .entity-tag-remove').forEach(btn=>setIconButton(btn, DELETE_ICON, 'icon-img-delete', 'Delete'));
     root.querySelectorAll('#entityRemove, button.entity-delete').forEach(btn=>setIconButton(btn, DELETE_ICON, 'icon-img-delete', 'Remove'));
