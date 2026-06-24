@@ -156,3 +156,47 @@ node scripts/build-docs-index.js
 ```
 
 That script scans `assets/docs` and rewrites `assets/docs/index.json` with every PDF found there.
+
+
+## Local testing note for Sync Docs
+
+Do not open `index.html` directly with a `file:///` URL when testing server-side docs. Modern browsers often block JavaScript `fetch()` calls to local files, so `assets/docs/index.json` may not be readable.
+
+From the folder containing `index.html`, run one of these instead:
+
+```bash
+python -m http.server 8000
+```
+
+Then open:
+
+```text
+http://localhost:8000/
+```
+
+Place the manifest at:
+
+```text
+assets/docs/index.json
+```
+
+Example:
+
+```json
+{
+  "files": [
+    {
+      "name": "Hostile - Alien Breeds",
+      "path": "Alien-Breeds3.pdf",
+      "tags": ["npc", "hostilerpg"]
+    },
+    {
+      "name": "colony-builder4.pdf",
+      "path": "colony-builder4.pdf",
+      "tags": ["colony", "rules"]
+    }
+  ]
+}
+```
+
+If the manifest is inside `assets/docs`, bare file names are preferred. The app also accepts full paths such as `assets/docs/Alien-Breeds3.pdf`.

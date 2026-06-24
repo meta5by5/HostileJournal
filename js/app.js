@@ -1284,7 +1284,7 @@ initEntityTracker();
   }
   async function loadServerDocsFromManifest(){
     const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
-    const manifests = [`${folder}/index.json`, `${folder}/docs.json`, `${folder}/manifest.json`];
+    const manifests = [`${folder}/index.json`, `index.json`, `${folder}/docs.json`, `${folder}/manifest.json`];
     for (const manifestPath of manifests){
       try {
         const res = await fetch(new URL(manifestPath, document.baseURI).href, { cache:'no-store' });
@@ -1343,7 +1343,11 @@ initEntityTracker();
     const files = mergeServerDocLists(listingResult.files, manifestResult.files);
     const sources = [listingResult.source, manifestResult.source].filter(Boolean).join(' + ') || '/' + folder;
     if (!files.length){
-      setGithubDocsStatus('No PDFs found in /' + folder + '. If your host does not expose directory listings, run scripts/build-docs-index.js after adding PDFs so /' + folder + '/index.json is refreshed.');
+      if (location.protocol === 'file:') {
+        setGithubDocsStatus('No PDFs found. Browser security often blocks reading assets/docs/index.json when index.html is opened directly as a file. Run a local web server from the app folder, then use http://localhost to Sync Docs.');
+      } else {
+        setGithubDocsStatus('No PDFs found in /' + folder + '. Confirm /' + folder + '/index.json exists and lists PDFs, or run scripts/build-docs-index.js after adding PDFs.');
+      }
       return;
     }
     const docs = ensureDocState();
