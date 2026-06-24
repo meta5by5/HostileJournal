@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "name": "Hostile - Alien Breeds",
+      "path": "assets/docs/Alien-Breeds3.pdf",
+      "tags": ["npc", "hostilerpg"]
+    },
+    {
+      "name": "colony-builder4.pdf",
+      "path": "colony-builder4.pdf",
+      "tags": ["colony", "rules"]
+    }
+  ]
+}

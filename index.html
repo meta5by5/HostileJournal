@@ -133,15 +133,15 @@
         <div class="section-header document-library-header">
           <h2>Document Library</h2>
           <button id="syncGithubDocsFolder" class="secondary compact-button" type="button" title="Read PDFs from /assets/docs">Sync Docs</button>
-          <label class="file-button secondary compact-upload-button" title="Upload PDF documents to local browser storage">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
+          <div class="document-upload-inline">
+            <input id="documentDefaultTags" type="text" list="documentTagDatalist" placeholder="Tags for next upload...">
+            <datalist id="documentTagDatalist"></datalist>
+            <label class="file-button secondary compact-upload-button" title="Upload PDF documents to local browser storage">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
+          </div>
         </div>
         <p class="small">Reads PDFs published in <code>/assets/docs</code> and also lets you upload PDFs into this browser's local storage for offline viewing. If a synced doc is opened on a computer without the local file, the app will prompt you to attach a local PDF copy.</p>
         <p id="githubDocsStatus" class="small">Use <strong>Sync Docs</strong> to refresh PDFs published in <code>/assets/docs</code>. Local uploads remain in this browser only.</p>
         <label class="document-search-label">Search Documents<input id="documentSearch" type="search" placeholder="Name or tag, e.g. colony, rules, sector..."></label>
-        <div class="document-tag-tools">
-          <input id="documentDefaultTags" type="text" list="documentTagDatalist" placeholder="Tags for next upload, comma separated">
-          <datalist id="documentTagDatalist"></datalist>
-        </div>
         <div id="documentTagFilterChips" class="document-tag-filter-chips" aria-label="Document tag filters"></div>
         <div id="documentLibraryList" class="document-library-list"></div>
       </div>

@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "name": "temp.pdf",
+      "path": "assets/docs/temp.pdf",
+      "tags": ["temp", "reference"]
+    },
+    {
+      "name": "doc.pdf",
+      "path": "assets/docs/doc.pdf",
+      "tags": ["manual", "rules"]
+    }
+  ]
+}
