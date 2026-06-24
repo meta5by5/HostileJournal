@@ -132,17 +132,17 @@
       <div id="documentLibraryTab" class="oracle-right-tab document-library-tab" hidden>
         <div class="section-header document-library-header">
           <h2>Document Library</h2>
-          <button id="syncGithubDocsFolder" class="secondary compact-button" type="button" title="Read PDFs from /assets/docs">Sync Docs</button>
           <div class="document-upload-inline">
+            <label class="file-button secondary compact-upload-button" title="Upload PDF documents to local browser storage">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
             <input id="documentDefaultTags" type="text" list="documentTagDatalist" placeholder="Tags for next upload...">
             <datalist id="documentTagDatalist"></datalist>
-            <label class="file-button secondary compact-upload-button" title="Upload PDF documents to local browser storage">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
           </div>
         </div>
-        <p class="small">Reads PDFs published in <code>/assets/docs</code> and also lets you upload PDFs into this browser's local storage for offline viewing. If a synced doc is opened on a computer without the local file, the app will prompt you to attach a local PDF copy.</p>
-        <p id="githubDocsStatus" class="small">Use <strong>Sync Docs</strong> to refresh PDFs published in <code>/assets/docs</code>. Local uploads remain in this browser only.</p>
-        <label class="document-search-label">Search Documents<input id="documentSearch" type="search" placeholder="Name or tag, e.g. colony, rules, sector..."></label>
-        <div id="documentTagFilterChips" class="document-tag-filter-chips" aria-label="Document tag filters"></div>
+        <button id="toggleDocumentSearch" class="document-search-toggle" type="button" aria-expanded="false" aria-controls="documentSearchPanel">Search Documents</button>
+        <div id="documentSearchPanel" class="document-search-panel" hidden>
+          <input id="documentSearch" type="search" placeholder="Name or tag, e.g. colony, rules, sector..." aria-label="Search Documents">
+          <div id="documentTagFilterChips" class="document-tag-filter-chips" aria-label="Document tag filters"></div>
+        </div>
         <div id="documentLibraryList" class="document-library-list"></div>
       </div>
       <div id="guideLibraryTab" class="oracle-right-tab guide-library-tab" hidden>
@@ -266,7 +266,15 @@
         <div class="panel-title-row settings-title-row"><h2 id="settingsTitle">⚙ Settings</h2><button id="closeSettings" class="secondary icon-button" type="button" title="Close settings" aria-label="Close settings">×</button></div>
         <div class="settings-tabs" role="tablist" aria-label="Settings tabs"><button class="tab-button active" type="button" data-settings-tab="save">Save / Sync</button><button class="tab-button" type="button" data-settings-tab="general">General</button><button class="tab-button" type="button" data-settings-tab="appearance">Appearance</button><button class="tab-button" type="button" data-settings-tab="entity">Entity Defaults</button><button class="tab-button" type="button" data-settings-tab="dice">Dice Roller</button></div>
         <section id="storagePanel" class="settings-section storage active-settings-section" data-settings-section="save" aria-label="Save and Sync"><div class="save-sync-body"><p class="small">Always autosaves to browser storage. On desktop Chrome/Edge, bind a campaign JSON file in a OneDrive-synced folder.</p><div class="button-column"><button id="exportJson">Export Campaign JSON</button><button id="exportJournalRichText" class="secondary" type="button">Export Journal</button><button id="exportJournalJson" class="secondary" type="button" title="Export Journal JSON">Export Journal JSON</button><label class="file-button secondary" title="Import Journal JSON">Import Journal JSON<input id="importJournalJson" type="file" accept=".json,application/json"></label><button id="exportEntitiesJson" class="secondary" type="button" title="Export Entities JSON">Export Entities JSON</button><label class="file-button secondary" title="Import Entities JSON">Import Entities JSON<input id="importEntitiesJson" type="file" accept=".json,application/json"></label><label class="file-button">Import Campaign JSON<input id="importJson" type="file" accept=".json,application/json"></label><button id="bindFile" class="secondary">Bind Save File / OneDrive Folder</button><button id="saveBoundFile" class="secondary">Save Bound File Now</button><button id="newCampaign" class="secondary">New Campaign</button></div><div class="sync-card"><h3>10-minute sync helper</h3><label><input id="autosaveBoundFile" type="checkbox">Autosave bound file every 10 minutes</label><p id="fileSupport" class="small"></p></div></div></section>
-        <section class="settings-section" data-settings-section="general" hidden><h3>General</h3><p class="small">General application settings will appear here as the app grows. Current campaign data remains available through Save / Sync.</p></section>
+        <section class="settings-section" data-settings-section="general" hidden>
+          <h3>General</h3>
+          <div class="settings-card docs-sync-settings">
+            <h4>Document Library Sync</h4>
+            <p class="small">Reads PDFs published in <code>/assets/docs</code> using <code>./assets/index.json</code> and also lets you upload PDFs into this browser's local storage for offline viewing. If a synced doc is opened on a computer without the local file, the app will prompt you to attach a local PDF copy.</p>
+            <button id="syncGithubDocsFolder" class="secondary compact-button" type="button" title="Read PDFs from ./assets/index.json">Sync Docs</button>
+            <p id="githubDocsStatus" class="small">Use <strong>Sync Docs</strong> to refresh PDFs published in <code>/assets/docs</code>. Local uploads remain in this browser only.</p>
+          </div>
+        </section>
         <section class="settings-section" data-settings-section="appearance" hidden><h3>Appearance</h3><p class="small">Appearance options are reserved for future theme and layout controls.</p></section>
         <section class="settings-section" data-settings-section="entity" hidden><h3>Entity Defaults</h3><p class="small">Entity defaults use your current tag lists, thumbnails, and relationship data.</p></section>
         <section class="settings-section" data-settings-section="dice" hidden><h3>Dice Roller</h3><p class="small">The Starforged dice roller uses an action die plus stat against two challenge dice and shows a bottom-right result card.</p></section>

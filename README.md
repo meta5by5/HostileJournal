@@ -246,3 +246,13 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 - The build no longer includes `assets/docs/.gitkeep` or sample manifest files.
 - Imported migration JSON files are excluded from this build because they have already been imported.
 - The Documents library ignores non-PDF entries in the manifest.
+
+### 2026-06-24 Document search collapse
+- The Documents panel now shows **Search Documents** as a compact link-style toggle.
+- The search text field and tag filter chips are hidden until the link is opened.
+- Closing the search panel hides both the text field and tags list to reduce vertical space.
+
+### 2026-06-24 Document controls layout update
+- Moved **Sync Docs** and its help/status text from the Documents tab to **Settings → General**.
+- Documents tab now keeps only the local upload controls, search toggle, and document list.
+- **Upload PDF** and **Tags for next upload...** are compact and aligned on one row, with the tags field to the right of the upload button.

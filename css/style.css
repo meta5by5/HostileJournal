@@ -1967,3 +1967,40 @@ body.left-crew-expanded #crewLinkPanel.active-left-view ~ #outputPanel{
 body.crew-workspace-open #oraclePanel{
   grid-area:oracle!important;
 }
+
+/* 2026-06-24 Document search collapse */
+.document-search-toggle{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--accent, #2f6f9f);
+  font:inherit;
+  font-size:.78rem;
+  font-weight:700;
+  line-height:1.2;
+  padding:.15rem 0;
+  margin:.1rem 0 .2rem;
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+.document-search-toggle::before{content:'▸ ';text-decoration:none;display:inline-block;}
+.document-search-toggle[aria-expanded="true"]::before{content:'▾ ';}
+.document-search-panel[hidden]{display:none!important;}
+.document-search-panel{display:flex;flex-direction:column;gap:.25rem;margin:.1rem 0 .25rem;}
+.document-search-panel input#documentSearch{font-size:.78rem!important;line-height:1.1!important;min-height:2rem!important;padding:.38rem .5rem!important;border-radius:8px!important;}
+
+/* 2026-06-24 move document sync controls to Settings > General and compact local upload row */
+.docs-sync-settings{
+  border:1px solid rgba(148,163,184,.35);
+  border-radius:12px;
+  padding:.75rem;
+  background:rgba(248,250,252,.7);
+  margin-top:.5rem;
+}
+.docs-sync-settings h4{margin:.05rem 0 .35rem;font-size:.92rem;}
+.docs-sync-settings #syncGithubDocsFolder{margin:.25rem 0 .35rem;padding:.34rem .62rem;min-height:1.75rem;font-size:.78rem;line-height:1.05;}
+.document-upload-inline{display:flex!important;align-items:center!important;gap:.35rem!important;margin:0!important;min-width:min(100%,21rem)!important;}
+.document-upload-inline .compact-upload-button{order:1;margin:0!important;white-space:nowrap!important;min-width:5.8rem!important;min-height:1.65rem!important;padding:.28rem .48rem!important;font-size:.76rem!important;line-height:1!important;border-radius:7px!important;}
+.document-upload-inline input#documentDefaultTags{order:2;margin:0!important;min-height:1.65rem!important;height:1.65rem!important;padding:.22rem .42rem!important;font-size:.74rem!important;line-height:1!important;border-radius:7px!important;flex:1 1 11rem!important;}
+@media(max-width:640px){.document-upload-inline{width:100%!important;}.document-upload-inline .compact-upload-button{flex:0 0 auto!important;}.document-upload-inline input#documentDefaultTags{min-width:0!important;}}

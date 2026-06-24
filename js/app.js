@@ -1590,6 +1590,20 @@ initEntityTracker();
     loadGithubDocsConfig();
     byId('documentPdfUpload')?.addEventListener('change', handlePdfUpload);
     byId('syncGithubDocsFolder')?.addEventListener('click', () => syncGithubDocsFolder().catch(err => alert('Could not sync ./assets/index.json: ' + err.message)));
+    byId('toggleDocumentSearch')?.addEventListener('click', () => {
+      const btn = byId('toggleDocumentSearch');
+      const panel = byId('documentSearchPanel');
+      if (!btn || !panel) return;
+      const opening = panel.hidden;
+      panel.hidden = !opening;
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      if (opening) {
+        setTimeout(() => byId('documentSearch')?.focus({ preventScroll:true }), 0);
+      } else {
+        document.activeElement && document.activeElement.blur && document.activeElement.blur();
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch(e) { window.scrollTo(0,0); }
+      }
+    });
     byId('documentSearch')?.addEventListener('input', renderDocumentLibrary);
     byId('documentDefaultTags')?.addEventListener('change', () => { if (typeof setStatus === 'function') setStatus('Document upload tags updated'); });
     byId('documentTagFilterChips')?.addEventListener('click', evt => { const chip = evt.target.closest('.document-tag-chip'); if (!chip) return; chip.classList.toggle('active'); renderDocumentLibrary(); });
