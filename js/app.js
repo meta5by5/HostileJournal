@@ -1256,7 +1256,8 @@ initEntityTracker();
     return 'assets/docs';
   }
   function serverDocUrlForPath(path){
-    return new URL(encodePathForUrl(path), document.baseURI).href;
+    const clean = String(path || '').replace(/\\/g,'/').replace(/^\.\//,'').replace(/^\/+/, '');
+    return new URL(encodePathForUrl(clean), document.baseURI).href;
   }
   function normalizeServerDocEntry(entry){
     if (!entry) return null;
@@ -1285,19 +1286,22 @@ initEntityTracker();
   async function loadServerDocsFromManifest(){
     const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
     const manifests = [`${folder}/index.json`, `index.json`, `${folder}/docs.json`, `${folder}/manifest.json`];
+    const errors = [];
     for (const manifestPath of manifests){
+      const url = new URL(manifestPath, document.baseURI).href;
       try {
-        const res = await fetch(new URL(manifestPath, document.baseURI).href, { cache:'no-store' });
-        if (!res.ok) continue;
+        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now(), { cache:'no-store' });
+        if (!res.ok){ errors.push(`${manifestPath}: HTTP ${res.status}`); continue; }
         const json = await res.json();
         const rows = Array.isArray(json) ? json : (Array.isArray(json.files) ? json.files : (Array.isArray(json.documents) ? json.documents : []));
         const files = rows.map(normalizeServerDocEntry).filter(Boolean);
-        if (files.length) return { files, source: manifestPath };
+        return { files, source: manifestPath, errors };
       } catch (err) {
+        errors.push(`${manifestPath}: ${err && err.message ? err.message : err}`);
         console.warn('Document manifest read skipped:', manifestPath, err);
       }
     }
-    return { files: [], source: '' };
+    return { files: [], source: '', errors };
   }
   async function loadServerDocsFromDirectoryListing(){
     const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
@@ -1335,18 +1339,18 @@ initEntityTracker();
 
   async function syncGithubDocsFolder(){
     const folder = getServerDocsFolder();
-    setGithubDocsStatus('Reading /' + folder + ' relative to this site...');
-    // Try to read the folder itself first. Some local/static servers expose directory listings.
-    // GitHub Pages usually does not, so index.json remains the reliable published manifest.
-    const listingResult = await loadServerDocsFromDirectoryListing();
+    setGithubDocsStatus('Reading ' + folder + '/index.json relative to this index.html...');
     const manifestResult = await loadServerDocsFromManifest();
-    const files = mergeServerDocLists(listingResult.files, manifestResult.files);
-    const sources = [listingResult.source, manifestResult.source].filter(Boolean).join(' + ') || '/' + folder;
+    // Directory listings are optional. The manifest is authoritative so Sync Docs works on GitHub Pages and simple local servers.
+    const listingResult = await loadServerDocsFromDirectoryListing();
+    const files = mergeServerDocLists(manifestResult.files, listingResult.files);
+    const sources = [manifestResult.source, listingResult.source].filter(Boolean).join(' + ') || (folder + '/index.json');
     if (!files.length){
+      const details = (manifestResult.errors && manifestResult.errors.length) ? ' Details: ' + manifestResult.errors.join(' | ') : '';
       if (location.protocol === 'file:') {
-        setGithubDocsStatus('No PDFs found. Browser security often blocks reading assets/docs/index.json when index.html is opened directly as a file. Run a local web server from the app folder, then use http://localhost to Sync Docs.');
+        setGithubDocsStatus('Could not read ' + folder + '/index.json from file://. Start a local server in the app folder: python -m http.server 8000, then open http://localhost:8000/.' + details);
       } else {
-        setGithubDocsStatus('No PDFs found in /' + folder + '. Confirm /' + folder + '/index.json exists and lists PDFs, or run scripts/build-docs-index.js after adding PDFs.');
+        setGithubDocsStatus('No PDFs found. Confirm ' + folder + '/index.json exists and contains a files array. The path is relative to this index.html.' + details);
       }
       return;
     }
@@ -1483,12 +1487,24 @@ initEntityTracker();
     let rec = await getPdf(id);
     if (!rec || !rec.blob){
       if (meta && (meta.serverPath || meta.githubPath || meta.githubPagesUrl || meta.githubDownloadUrl)){
-        const attached = await promptForLocalPdfCopy(meta);
-        if (!attached) return;
-        rec = await getPdf(id);
+        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = null;
+        currentPdfRecord = meta;
+        const title = byId('documentViewerTitle');
+        const metaEl = byId('documentViewerMeta');
+        const frame = byId('documentViewerFrame');
+        const overlay = byId('documentViewerOverlay');
+        const url = meta.githubPagesUrl || meta.githubDownloadUrl || serverDocUrlForPath(meta.serverPath || meta.githubPath);
+        if (title) title.textContent = currentPdfRecord.name || 'PDF Document';
+        if (metaEl) metaEl.textContent = `${fmtBytes(currentPdfRecord.size)} • Server PDF viewer`;
+        if (frame) frame.src = url + (page ? ('#page=' + Math.max(1, parseInt(page,10)||1)) : '');
+        if (overlay) overlay.hidden = false;
+        document.body.classList.add('document-viewer-open');
+        if (typeof setStatus === 'function') setStatus('Opened server PDF document' + (page ? ' to page ' + Math.max(1, parseInt(page,10)||1) : ''));
+        return;
       }
     }
-    if (!rec || !rec.blob){ alert('Could not find this PDF in browser storage. Re-upload the file.'); return; }
+    if (!rec || !rec.blob){ alert('Could not find this PDF in browser storage or /assets/docs. Re-upload the file or run Sync Docs.'); return; }
     if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
     currentPdfRecord = meta || rec;
     currentPdfUrl = URL.createObjectURL(rec.blob);
@@ -2157,4 +2173,38 @@ document.addEventListener('click',function(e){
     }
   }
   document.addEventListener('click', hardHandleMainNav, true);
+})();
+
+
+/* 2026-06-24 Docs Sync hard binding: Sync Docs reads assets/docs/index.json and adds server docs to the library. */
+(function(){
+  function bindDocsSyncButton(){
+    const old = document.getElementById('syncGithubDocsFolder');
+    if(!old || old.dataset.relativeDocsSyncBound === '1') return;
+    const btn = old.cloneNode(true);
+    btn.dataset.relativeDocsSyncBound = '1';
+    old.parentNode.replaceChild(btn, old);
+    btn.addEventListener('click', async function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      const status = document.getElementById('githubDocsStatus');
+      if(status) status.textContent = 'Reading assets/docs/index.json...';
+      try{
+        if(window.HostileDocuments && typeof window.HostileDocuments.syncGithubDocsFolder === 'function'){
+          await window.HostileDocuments.syncGithubDocsFolder();
+        } else {
+          throw new Error('Document library is not initialized yet. Refresh the page and try again.');
+        }
+      }catch(err){
+        const msg = 'Could not read assets/docs/index.json: ' + (err && err.message ? err.message : err);
+        if(status) status.textContent = msg;
+        alert(msg);
+      }
+      return false;
+    }, true);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindDocsSyncButton); else bindDocsSyncButton();
+  setTimeout(bindDocsSyncButton, 300);
+  setTimeout(bindDocsSyncButton, 1000);
 })();

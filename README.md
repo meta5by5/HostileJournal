@@ -200,3 +200,40 @@ Example:
 ```
 
 If the manifest is inside `assets/docs`, bare file names are preferred. The app also accepts full paths such as `assets/docs/Alien-Breeds3.pdf`.
+
+## Documents Sync Fix
+
+The **Sync Docs** button now reads `assets/docs/index.json` relative to the same folder as `index.html` and adds each listed PDF to the Documents library as a server document.
+
+Server documents open in the embedded PDF viewer using their published path, such as:
+
+```text
+assets/docs/Alien-Breeds3.pdf
+```
+
+Use this format:
+
+```json
+{
+  "files": [
+    {
+      "name": "Hostile - Alien Breeds",
+      "path": "assets/docs/Alien-Breeds3.pdf",
+      "tags": ["npc", "hostilerpg"]
+    },
+    {
+      "name": "colony-builder4.pdf",
+      "path": "assets/docs/colony-builder4.pdf",
+      "tags": ["colony", "rules"]
+    }
+  ]
+}
+```
+
+For local testing, run from the app folder with:
+
+```bash
+python -m http.server 8000
+```
+
+Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///...` may prevent the browser from reading `assets/docs/index.json`.
