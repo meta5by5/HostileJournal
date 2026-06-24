@@ -1817,3 +1817,10 @@ button.entity-history-tab:hover{
 .document-card-tag-chip.removable span{margin-left:.18rem;color:var(--muted);font-weight:900}
 .document-card-tag-chip.removable:hover,.document-card-tag-chip.removable:focus{border-color:var(--accent);color:var(--text)}
 .document-tag-toggle.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px rgba(85,172,238,.15) inset}
+
+/* 2026-06-24: center/right Guide placement */
+.oracle-right-tabs{grid-template-columns:1fr 1fr 1fr;}
+.center-guide-view .guide-editor{min-height:52vh;}
+.center-guide-view .small{margin:.2rem 0 .6rem;}
+#showCenterGuideTab{order:-1;}
+@media(max-width:640px){.oracle-right-tabs{grid-template-columns:1fr}.center-guide-view .guide-editor{min-height:45vh}}

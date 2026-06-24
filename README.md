@@ -77,3 +77,20 @@ Rich text editors now support PDF references through the existing `@` mention po
 - Each uploaded PDF row includes an existing-tag dropdown for quickly adding tags already used by other documents.
 - The right panel now includes a Guide tab beside Oracles and Documents.
 - The Guide tab is a rich text editor saved in the Hostile JSON/local state and supports the same @ document links used by journal/comment editors, including PDF page targets.
+
+### 2026-06-24 Guide navigation update
+- Moved the right-panel Guide tab between Oracles and Documents.
+- Added a center-section Guide tab to the left of Scene Elements.
+- Added a main navigation Guide button that opens the right-panel Guide tab.
+- The center Guide and right Guide share the same saved guide content.
+- Selecting right-panel Guide while the center Guide is active switches the center panel back to Journal.
+- Selecting center Guide while the right-panel Guide is active switches the right panel back to Oracles.
+
+
+## 2026-06-24 Guide navigation tweak
+- Main navigation Guide now opens the right-panel Guide and resets the center Guide view back to Journal if it was active.
+- Center tab order changed to Journal, Guide, Scene Elements.
+
+## 2026-06-24 Document display-name editing
+- Document rows now include a pencil button to edit the displayed document name.
+- Renaming changes the name shown in the document list, PDF viewer title, search results, and newly inserted @ PDF links without changing the stored PDF file/blob.

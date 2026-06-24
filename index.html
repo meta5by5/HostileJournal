@@ -13,6 +13,7 @@
     <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkPanel" title="Crew"><img class="top-nav-icon-img" src="./img/crew-link-icon.png" alt=""><span class="top-nav-label">Crew</span></button>
     <button id="showJournalNav" type="button" aria-controls="outputPanel" title="Journal"><span class="top-nav-icon">🖋</span><span class="top-nav-label">Journal</span></button>
     <button id="openOraclePanel" type="button" aria-controls="oraclePanel" title="Oracle"><span class="top-nav-icon">🎲</span><span class="top-nav-label">Oracle</span></button>
+    <button id="openGuidePanel" type="button" aria-controls="oraclePanel" title="Guide"><span class="top-nav-icon">📖</span><span class="top-nav-label">Guide</span></button>
     <button id="openControlsPanel" type="button" aria-controls="controlsPanel" title="Builder"><span class="top-nav-icon">🎞️</span><span class="top-nav-label">Builder</span></button>
     <button id="showSceneElementsNav" type="button" aria-controls="outputPanel" title="Elements"><span class="top-nav-icon">▤</span><span class="top-nav-label">Elements</span></button>
     <button id="openLivingShipPanel" type="button" aria-controls="livingShipPanel" title="Ship"><img class="top-nav-icon-img" src="./img/ship-generator-icon.png" alt=""><span class="top-nav-label">Ship</span></button>
@@ -42,9 +43,30 @@
       <div class="center-top-row">
         <h2 id="centerSectionTitle">Journal</h2>
         <div class="center-tabs" role="tablist" aria-label="Center section tabs">
-          <button id="showOutputTab" class="tab-button" type="button">Scene Elements</button>
           <button id="showJournalTab" class="tab-button active" type="button">Journal</button>
+          <button id="showCenterGuideTab" class="tab-button" type="button">Guide</button>
+          <button id="showOutputTab" class="tab-button" type="button">Scene Elements</button>
         </div>
+      </div>
+
+      <div id="centerGuideView" class="center-view center-guide-view">
+        <div class="section-header guide-library-header">
+          <h2>Guide</h2>
+          <button id="clearCenterGuideEditor" class="secondary compact-button" type="button">Clear</button>
+        </div>
+        <p class="small">Campaign table of contents and document links. Type <strong>@</strong> or drag a PDF from Documents into the editor to create a page link.</p>
+        <div class="format-toolbar compact-comment-toolbar guide-editor-toolbar" data-editor-toolbar="centerGuideEditor">
+          <button type="button" class="icon-button secondary" data-format="bold" title="Bold" aria-label="Bold">𝗕</button>
+          <button type="button" class="icon-button secondary" data-format="italic" title="Italic" aria-label="Italic">𝘐</button>
+          <button type="button" class="icon-button secondary" data-format="insertUnorderedList" title="Bullet list" aria-label="Bullet list">•</button>
+          <button type="button" class="icon-button secondary" data-format="insertOrderedList" title="Numbered list" aria-label="Numbered list">☷</button>
+          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="blockquote" title="Quote" aria-label="Quote">❝</button>
+          <button type="button" class="icon-button secondary" data-format="formatBlock" data-format-value="h2" title="Header" aria-label="Header">▣</button>
+          <button type="button" class="icon-button secondary" data-format="indent" title="Indent" aria-label="Indent">⇥</button>
+          <button type="button" class="icon-button secondary" data-format="outdent" title="Outdent" aria-label="Outdent">⇤</button>
+          <label class="icon-button secondary image-upload-button" title="Insert image" aria-label="Insert image">🖼<input type="file" accept="image/*" data-image-target="centerGuideEditor"></label>
+        </div>
+        <div id="centerGuideEditor" class="rich-editor guide-editor center-guide-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Example: Colony Builder @colony-builder.pdf p.44"></div>
       </div>
 
       <div id="currentOutputView" class="center-view active-view">
@@ -89,8 +111,8 @@
       <div class="panel-title-row"><h2>Oracles</h2><button class="close-panel secondary" type="button" data-close-panel>Close</button></div>
       <div class="oracle-right-tabs" role="tablist" aria-label="Right panel tabs">
         <button id="showOracleLibraryTab" class="tab-button active" type="button">Oracles</button>
-        <button id="showDocumentLibraryTab" class="tab-button" type="button">Documents</button>
         <button id="showGuideLibraryTab" class="tab-button" type="button">Guide</button>
+        <button id="showDocumentLibraryTab" class="tab-button" type="button">Documents</button>
       </div>
       <div id="oracleLibraryTab" class="oracle-right-tab active-oracle-tab">
       <div class="section-header oracle-actions">

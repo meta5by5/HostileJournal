@@ -1207,7 +1207,7 @@ initEntityTracker();
       card.draggable = true;
       card.dataset.docDrag = doc.id;
       card.title = 'Drag into a text editor to create a PDF page link';
-      card.innerHTML = `<div class="document-card-main"><a href="#" class="document-card-title document-card-title-link" data-doc-open="${escDoc(doc.id)}" data-doc-drag="${escDoc(doc.id)}" draggable="true" title="Open PDF, or drag into an editor to link it">${escDoc(doc.name)}</a><div class="document-card-tags">${tagChips}</div><div class="document-card-tag-editor" data-doc-tag-editor="${escDoc(doc.id)}" hidden><div class="document-card-edit-tags">${editableTagChips}</div><div class="document-card-tag-row"><input class="document-card-tag-input" type="text" list="documentTagDatalist" data-doc-new-tag="${escDoc(doc.id)}" placeholder="Add new tag" aria-label="Add new document tag"><select class="document-card-tag-select" data-doc-add-tag="${escDoc(doc.id)}" aria-label="Add existing tag"><option value="">+ existing</option>${tagOptions}</select></div></div></div><div class="document-card-actions"><button class="secondary document-tag-toggle" type="button" data-doc-toggle-tags="${escDoc(doc.id)}" title="Modify tags" aria-label="Modify tags">⚑</button><button class="secondary" type="button" data-doc-delete="${escDoc(doc.id)}" title="Remove PDF" aria-label="Remove PDF">🗑</button></div>`;
+      card.innerHTML = `<div class="document-card-main"><a href="#" class="document-card-title document-card-title-link" data-doc-open="${escDoc(doc.id)}" data-doc-drag="${escDoc(doc.id)}" draggable="true" title="Open PDF, or drag into an editor to link it">${escDoc(doc.name)}</a><div class="document-card-tags">${tagChips}</div><div class="document-card-tag-editor" data-doc-tag-editor="${escDoc(doc.id)}" hidden><div class="document-card-edit-tags">${editableTagChips}</div><div class="document-card-tag-row"><input class="document-card-tag-input" type="text" list="documentTagDatalist" data-doc-new-tag="${escDoc(doc.id)}" placeholder="Add new tag" aria-label="Add new document tag"><select class="document-card-tag-select" data-doc-add-tag="${escDoc(doc.id)}" aria-label="Add existing tag"><option value="">+ existing</option>${tagOptions}</select></div></div></div><div class="document-card-actions"><button class="secondary document-rename-button" type="button" data-doc-rename="${escDoc(doc.id)}" title="Rename displayed document name" aria-label="Rename document">✎</button><button class="secondary document-tag-toggle" type="button" data-doc-toggle-tags="${escDoc(doc.id)}" title="Modify tags" aria-label="Modify tags">⚑</button><button class="secondary" type="button" data-doc-delete="${escDoc(doc.id)}" title="Remove PDF" aria-label="Remove PDF">🗑</button></div>`;
       list.appendChild(card);
     });
   }
@@ -1272,6 +1272,31 @@ initEntityTracker();
     renderDocumentLibrary();
     if (typeof setStatus === 'function') setStatus('Removed PDF document');
   }
+  async function renameDocument(id){
+    const docs = ensureDocState();
+    const doc = docs.find(d => d.id === id);
+    if (!doc) return;
+    const oldName = doc.name || 'PDF Document';
+    const nextName = prompt('Displayed document name:', oldName);
+    if (nextName === null) return;
+    const cleanName = String(nextName).trim();
+    if (!cleanName || cleanName === oldName) return;
+    doc.name = cleanName;
+    try {
+      const rec = await getPdf(id);
+      if (rec) await putPdf({ ...rec, name: cleanName });
+    } catch (err) {
+      console.warn('Could not update stored PDF metadata name', err);
+    }
+    if (currentPdfRecord && currentPdfRecord.id === id){
+      currentPdfRecord.name = cleanName;
+      const title = byId('documentViewerTitle');
+      if (title) title.textContent = cleanName;
+    }
+    saveDocState();
+    renderDocumentLibrary();
+    if (typeof setStatus === 'function') setStatus('Renamed displayed document name');
+  }
   function renderGuideEditor(){
     const editor = byId('guideEditor');
     if (!editor) return;
@@ -1300,9 +1325,11 @@ initEntityTracker();
     byId('documentLibraryList')?.addEventListener('click', evt => {
       const openBtn = evt.target.closest('[data-doc-open]');
       const toggleBtn = evt.target.closest('[data-doc-toggle-tags]');
+      const renameBtn = evt.target.closest('[data-doc-rename]');
       const removeTagBtn = evt.target.closest('[data-doc-remove-tag]');
       const delBtn = evt.target.closest('[data-doc-delete]');
       if (openBtn){ evt.preventDefault(); openDocument(openBtn.dataset.docOpen).catch(err => alert('Could not open PDF: ' + err.message)); return; }
+      if (renameBtn){ evt.preventDefault(); renameDocument(renameBtn.dataset.docRename).catch(err => alert('Could not rename PDF: ' + err.message)); return; }
       if (toggleBtn){
         const card = toggleBtn.closest('.document-card');
         const editor = card?.querySelector('[data-doc-tag-editor]');
@@ -1488,4 +1515,119 @@ document.addEventListener('click',function(e){
     if (page === null) return;
     insertAtDrop(editor, evt, doc, page);
   });
+})();
+
+/* 2026-06-24: Guide placement/navigation refinements.
+   Adds a center Guide view, right-panel Guide tab behavior, and top-nav Guide entry. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function isRightGuideActive(){ var g=byId('guideLibraryTab'); return !!(g && !g.hidden); }
+  function renderAllGuideEditors(force){
+    var html=(window.state && window.state.documentGuideHtml) || (typeof state!=='undefined' && state.documentGuideHtml) || '';
+    ['guideEditor','centerGuideEditor'].forEach(function(id){
+      var ed=byId(id); if(!ed) return;
+      if(force || ed.dataset.guideLoaded!=='1'){
+        ed.innerHTML=html;
+        ed.dataset.guideLoaded='1';
+      }
+    });
+  }
+  function saveGuideFrom(editor){
+    if(!editor) return;
+    var html=editor.innerHTML || '';
+    if(typeof sanitizeHtml==='function') html=sanitizeHtml(html);
+    if(typeof state!=='undefined') state.documentGuideHtml=html;
+    if(window.state) window.state.documentGuideHtml=html;
+    ['guideEditor','centerGuideEditor'].forEach(function(id){
+      var ed=byId(id); if(ed && ed!==editor && document.activeElement!==ed) { ed.innerHTML=html; ed.dataset.guideLoaded='1'; }
+    });
+    if(typeof saveState==='function') saveState();
+  }
+  function showRightTabPublic(name){
+    var oracle=byId('oracleLibraryTab'), docs=byId('documentLibraryTab'), guide=byId('guideLibraryTab');
+    var oracleBtn=byId('showOracleLibraryTab'), docsBtn=byId('showDocumentLibraryTab'), guideBtn=byId('showGuideLibraryTab');
+    var onDocs=name==='documents', onGuide=name==='guide';
+    if(oracle){ oracle.hidden=onDocs||onGuide; oracle.classList.toggle('active-oracle-tab', !onDocs&&!onGuide); }
+    if(docs){ docs.hidden=!onDocs; docs.classList.toggle('active-oracle-tab', onDocs); }
+    if(guide){ guide.hidden=!onGuide; guide.classList.toggle('active-oracle-tab', onGuide); }
+    if(oracleBtn) oracleBtn.classList.toggle('active', !onDocs&&!onGuide);
+    if(docsBtn) docsBtn.classList.toggle('active', onDocs);
+    if(guideBtn) guideBtn.classList.toggle('active', onGuide);
+    if(onDocs && window.HostileDocuments && typeof window.HostileDocuments.renderDocumentLibrary==='function') window.HostileDocuments.renderDocumentLibrary();
+    if(onGuide) renderAllGuideEditors(false);
+  }
+  window.showHostileRightTab=showRightTabPublic;
+  var originalCenter=window.showCenterTab || (typeof showCenterTab==='function' ? showCenterTab : null);
+  window.showCenterTab=function(tab, save){
+    tab = tab==='guide' ? 'guide' : (tab==='journal' ? 'journal' : 'output');
+    if(typeof state!=='undefined') state.activeCenterTab=tab;
+    if(window.state) window.state.activeCenterTab=tab;
+    var out=byId('currentOutputView'), journal=byId('journalView'), guide=byId('centerGuideView');
+    var outBtn=byId('showOutputTab'), journalBtn=byId('showJournalTab'), guideBtn=byId('showCenterGuideTab');
+    var title=byId('centerSectionTitle');
+    if(out) out.classList.toggle('active-view', tab==='output');
+    if(journal) journal.classList.toggle('active-view', tab==='journal');
+    if(guide) guide.classList.toggle('active-view', tab==='guide');
+    if(outBtn) outBtn.classList.toggle('active', tab==='output');
+    if(journalBtn) journalBtn.classList.toggle('active', tab==='journal');
+    if(guideBtn) guideBtn.classList.toggle('active', tab==='guide');
+    if(title) title.textContent = tab==='guide' ? 'Guide' : (tab==='journal' ? 'Journal' : 'Scene Elements');
+    document.body.classList.toggle('center-focused', true);
+    if(tab==='guide') renderAllGuideEditors(false);
+    var target = tab==='guide' ? 'centerGuideView' : (tab==='journal' ? 'journalView' : 'currentOutputView');
+    if(typeof scrollActiveCardToTop==='function') scrollActiveCardToTop(target);
+    if(save!==false && typeof saveState==='function') saveState();
+  };
+  try { showCenterTab = window.showCenterTab; } catch(e) {}
+  function openRightGuidePanel(){
+    if((typeof state!=='undefined' && state.activeCenterTab==='guide') || (window.state && window.state.activeCenterTab==='guide')){
+      window.showCenterTab('journal', true);
+    }
+    document.body.classList.remove('entity-editor-workspace-open','entity-editor-overlay-open','crew-workspace-open','left-crew-expanded');
+    var panel=byId('oraclePanel');
+    if(panel){
+      document.querySelectorAll('.side-panel').forEach(function(p){ p.classList.toggle('is-open', p===panel); });
+      panel.scrollTop=0;
+    }
+    var backdrop=byId('panelBackdrop'); if(backdrop) backdrop.hidden=false;
+    document.body.classList.add('side-panel-open');
+    showRightTabPublic('guide');
+  }
+  function bindGuideNav(){
+    var cbtn=byId('showCenterGuideTab');
+    if(cbtn && !cbtn.dataset.guideNavBound){
+      cbtn.dataset.guideNavBound='1';
+      cbtn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        if(isRightGuideActive()) showRightTabPublic('oracles');
+        window.showCenterTab('guide', true);
+      }, true);
+    }
+    var rbtn=byId('showGuideLibraryTab');
+    if(rbtn && !rbtn.dataset.guideNavBound){
+      rbtn.dataset.guideNavBound='1';
+      rbtn.addEventListener('click', function(ev){
+        ev.preventDefault(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+        if((typeof state!=='undefined' && state.activeCenterTab==='guide') || (window.state && window.state.activeCenterTab==='guide')) window.showCenterTab('journal', true);
+        showRightTabPublic('guide');
+      }, true);
+    }
+    var obtn=byId('showOracleLibraryTab');
+    if(obtn && !obtn.dataset.guideNavBound){ obtn.dataset.guideNavBound='1'; obtn.addEventListener('click', function(ev){ ev.preventDefault(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); showRightTabPublic('oracles'); }, true); }
+    var dbtn=byId('showDocumentLibraryTab');
+    if(dbtn && !dbtn.dataset.guideNavBound){ dbtn.dataset.guideNavBound='1'; dbtn.addEventListener('click', function(ev){ ev.preventDefault(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); showRightTabPublic('documents'); }, true); }
+    var top=byId('openGuidePanel');
+    if(top && !top.dataset.guideNavBound){
+      top.dataset.guideNavBound='1';
+      top.addEventListener('click', function(ev){ ev.preventDefault(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); openRightGuidePanel(); }, true);
+    }
+    ['guideEditor','centerGuideEditor'].forEach(function(id){
+      var ed=byId(id); if(ed && !ed.dataset.guideSyncBound){ ed.dataset.guideSyncBound='1'; ed.addEventListener('input', function(){ saveGuideFrom(ed); }); }
+    });
+    var clear=byId('clearCenterGuideEditor');
+    if(clear && !clear.dataset.guideNavBound){ clear.dataset.guideNavBound='1'; clear.addEventListener('click', function(){ if(confirm('Clear the Guide editor?')){ if(typeof state!=='undefined') state.documentGuideHtml=''; if(window.state) window.state.documentGuideHtml=''; renderAllGuideEditors(true); if(typeof saveState==='function') saveState(); } }); }
+    renderAllGuideEditors(false);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindGuideNav); else bindGuideNav();
+  setTimeout(bindGuideNav, 600);
 })();
