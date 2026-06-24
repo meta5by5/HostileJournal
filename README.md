@@ -256,3 +256,10 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 - Moved **Sync Docs** and its help/status text from the Documents tab to **Settings → General**.
 - Documents tab now keeps only the local upload controls, search toggle, and document list.
 - **Upload PDF** and **Tags for next upload...** are compact and aligned on one row, with the tags field to the right of the upload button.
+
+## PDF Viewer session update
+
+- The embedded PDF viewer now supports multiple open PDF tabs inside the viewer card.
+- Each document remembers the last page opened or entered in the viewer page box.
+- When the app reloads after PDFs were left open, it asks whether to reopen those documents to their recent pages.
+- Browser PDF viewers do not expose scroll/current-page changes to JavaScript reliably, so the app remembers pages opened by links or entered in the viewer page field.

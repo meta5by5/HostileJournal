@@ -2004,3 +2004,16 @@ body.crew-workspace-open #oraclePanel{
 .document-upload-inline .compact-upload-button{order:1;margin:0!important;white-space:nowrap!important;min-width:5.8rem!important;min-height:1.65rem!important;padding:.28rem .48rem!important;font-size:.76rem!important;line-height:1!important;border-radius:7px!important;}
 .document-upload-inline input#documentDefaultTags{order:2;margin:0!important;min-height:1.65rem!important;height:1.65rem!important;padding:.22rem .42rem!important;font-size:.74rem!important;line-height:1!important;border-radius:7px!important;flex:1 1 11rem!important;}
 @media(max-width:640px){.document-upload-inline{width:100%!important;}.document-upload-inline .compact-upload-button{flex:0 0 auto!important;}.document-upload-inline input#documentDefaultTags{min-width:0!important;}}
+
+/* Multi-document PDF viewer tabs and remembered page controls */
+.document-viewer-tabs{display:flex;gap:.35rem;align-items:center;overflow-x:auto;padding:.42rem .65rem;border-bottom:1px solid var(--border);background:#0d1420;scrollbar-width:thin}
+.document-viewer-tab{width:auto;max-width:13rem;margin:0;padding:.28rem .42rem;border:1px solid var(--border);border-radius:999px;background:#111722;color:var(--muted);display:inline-flex;gap:.35rem;align-items:center;font-size:.76rem;line-height:1.1;white-space:nowrap}
+.document-viewer-tab.active{background:var(--accent);border-color:var(--accent);color:#05111c;font-weight:900}
+.document-viewer-tab-title{overflow:hidden;text-overflow:ellipsis;max-width:8.5rem}
+.document-viewer-tab-page{font-size:.68rem;opacity:.8}
+.document-viewer-tab-close{font-weight:900;padding:0 .12rem;border-radius:999px;cursor:pointer}
+.document-viewer-tab-close:hover{background:rgba(0,0,0,.18)}
+.document-viewer-page-controls{display:inline-flex;gap:.25rem;align-items:center;margin-right:.25rem;color:var(--muted);font-size:.76rem;font-weight:800}
+.document-viewer-page-controls input{width:4.25rem;min-height:1.55rem;padding:.18rem .32rem;font-size:.78rem;border-radius:7px}
+.document-viewer-page-controls button{min-height:1.55rem;padding:.18rem .42rem!important;font-size:.74rem!important}
+@media(max-width:640px){.document-viewer-tab{max-width:10rem}.document-viewer-tab-title{max-width:6rem}.document-viewer-actions{flex-wrap:wrap}.document-viewer-page-controls{order:-1;width:100%;justify-content:flex-end}}

@@ -1057,8 +1057,49 @@ initEntityTracker();
   const STORE = 'pdfs';
   let currentPdfUrl = null;
   let currentPdfRecord = null;
+  let documentViewerTabs = [];
+  let activeDocumentTabId = null;
+  const PDF_LAST_PAGES_KEY = 'hostilePdfLastPages';
+  const PDF_OPEN_TABS_KEY = 'hostilePdfOpenTabs';
   const byId = id => document.getElementById(id);
   const escDoc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  function getPdfLastPages(){
+    try { return JSON.parse(localStorage.getItem(PDF_LAST_PAGES_KEY) || '{}') || {}; } catch(e){ return {}; }
+  }
+  function getPdfLastPage(docId){
+    const pages = getPdfLastPages();
+    const n = parseInt(pages[docId], 10);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+  function setPdfLastPage(docId, page){
+    if (!docId) return;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const pages = getPdfLastPages();
+    pages[docId] = p;
+    localStorage.setItem(PDF_LAST_PAGES_KEY, JSON.stringify(pages));
+  }
+  function normalizePdfPage(page, fallback=1){
+    const p = Math.max(1, parseInt(page, 10) || parseInt(fallback, 10) || 1);
+    return p;
+  }
+  function makePdfSrc(baseUrl, page){
+    const p = normalizePdfPage(page, 1);
+    const clean = String(baseUrl || '').split('#')[0];
+    return clean + '#page=' + p;
+  }
+  function persistOpenPdfTabs(){
+    try {
+      const tabs = documentViewerTabs.map(t => ({ docId: t.docId, page: normalizePdfPage(t.page, getPdfLastPage(t.docId)), name: t.name || '' }));
+      if (tabs.length) localStorage.setItem(PDF_OPEN_TABS_KEY, JSON.stringify({ activeDocId: documentViewerTabs.find(t=>t.id===activeDocumentTabId)?.docId || '', tabs }));
+      else localStorage.removeItem(PDF_OPEN_TABS_KEY);
+    } catch(e){ console.warn('Could not persist open PDF tabs', e); }
+  }
+  function loadPersistedPdfTabs(){
+    try { return JSON.parse(localStorage.getItem(PDF_OPEN_TABS_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function clearPersistedPdfTabs(){
+    try { localStorage.removeItem(PDF_OPEN_TABS_KEY); } catch(e){}
+  }
   const fmtBytes = n => {
     n = Number(n || 0);
     if (n < 1024) return n + ' B';
@@ -1168,6 +1209,106 @@ initEntityTracker();
     if (guideBtn) guideBtn.classList.toggle('active', onGuide);
     if (onDocs) renderDocumentLibrary();
     if (onGuide) renderGuideEditor();
+  }
+  function ensureDocumentViewerTabsUi(){
+    const card = document.querySelector('#documentViewerOverlay .document-viewer-card');
+    const toolbar = byId('documentViewerOverlay')?.querySelector('.document-viewer-toolbar');
+    const actions = byId('documentViewerOverlay')?.querySelector('.document-viewer-actions');
+    if (!card || !toolbar) return;
+    if (!byId('documentViewerTabs')){
+      const tabs = document.createElement('div');
+      tabs.id = 'documentViewerTabs';
+      tabs.className = 'document-viewer-tabs';
+      tabs.setAttribute('role','tablist');
+      tabs.setAttribute('aria-label','Open PDF tabs');
+      toolbar.insertAdjacentElement('afterend', tabs);
+    }
+    if (actions && !byId('documentViewerPageControls')){
+      const wrap = document.createElement('span');
+      wrap.id = 'documentViewerPageControls';
+      wrap.className = 'document-viewer-page-controls';
+      wrap.innerHTML = '<label for="documentViewerPageInput">Page</label><input id="documentViewerPageInput" type="number" min="1" step="1" value="1" aria-label="PDF page"><button id="documentViewerGoPage" class="secondary compact-button" type="button" title="Go to page">Go</button>';
+      actions.insertBefore(wrap, actions.firstChild);
+      byId('documentViewerGoPage')?.addEventListener('click', () => {
+        const tab = documentViewerTabs.find(t => t.id === activeDocumentTabId);
+        if (!tab) return;
+        const page = normalizePdfPage(byId('documentViewerPageInput')?.value, tab.page || 1);
+        tab.page = page;
+        setPdfLastPage(tab.docId, page);
+        activateDocumentViewerTab(tab.id);
+        persistOpenPdfTabs();
+      });
+      byId('documentViewerPageInput')?.addEventListener('keydown', evt => {
+        if (evt.key === 'Enter') byId('documentViewerGoPage')?.click();
+      });
+      byId('documentViewerPageInput')?.addEventListener('change', () => {
+        const tab = documentViewerTabs.find(t => t.id === activeDocumentTabId);
+        if (!tab) return;
+        const page = normalizePdfPage(byId('documentViewerPageInput')?.value, tab.page || 1);
+        tab.page = page;
+        setPdfLastPage(tab.docId, page);
+        persistOpenPdfTabs();
+      });
+    }
+  }
+  function renderDocumentViewerTabs(){
+    ensureDocumentViewerTabsUi();
+    const wrap = byId('documentViewerTabs');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    documentViewerTabs.forEach(tab => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'document-viewer-tab' + (tab.id === activeDocumentTabId ? ' active' : '');
+      btn.dataset.viewerTab = tab.id;
+      btn.title = (tab.name || 'PDF Document') + ' — page ' + normalizePdfPage(tab.page, 1);
+      btn.innerHTML = '<span class="document-viewer-tab-title">' + escDoc(tab.name || 'PDF Document') + '</span><span class="document-viewer-tab-page">p.' + normalizePdfPage(tab.page, 1) + '</span><span class="document-viewer-tab-close" data-viewer-tab-close="' + escDoc(tab.id) + '" title="Close this PDF" aria-label="Close this PDF">×</span>';
+      wrap.appendChild(btn);
+    });
+  }
+  function syncCurrentTabPageFromInput(){
+    const tab = documentViewerTabs.find(t => t.id === activeDocumentTabId);
+    if (!tab) return;
+    const input = byId('documentViewerPageInput');
+    if (!input) return;
+    const page = normalizePdfPage(input.value, tab.page || 1);
+    tab.page = page;
+    setPdfLastPage(tab.docId, page);
+  }
+  function activateDocumentViewerTab(tabId){
+    ensureDocumentViewerTabsUi();
+    const tab = documentViewerTabs.find(t => t.id === tabId);
+    if (!tab) return;
+    activeDocumentTabId = tab.id;
+    currentPdfRecord = tab.record || ensureDocState().find(d => d.id === tab.docId) || null;
+    currentPdfUrl = tab.blobUrl || null;
+    const title = byId('documentViewerTitle');
+    const metaEl = byId('documentViewerMeta');
+    const frame = byId('documentViewerFrame');
+    const overlay = byId('documentViewerOverlay');
+    const pageInput = byId('documentViewerPageInput');
+    if (title) title.textContent = tab.name || currentPdfRecord?.name || 'PDF Document';
+    if (metaEl) metaEl.textContent = `${fmtBytes(tab.size || currentPdfRecord?.size)} • ${tab.kind === 'server' ? 'Server' : 'Local'} PDF viewer`;
+    if (pageInput) pageInput.value = normalizePdfPage(tab.page, getPdfLastPage(tab.docId));
+    if (frame) frame.src = makePdfSrc(tab.baseUrl, tab.page);
+    if (overlay) overlay.hidden = false;
+    document.body.classList.add('document-viewer-open');
+    renderDocumentViewerTabs();
+    persistOpenPdfTabs();
+  }
+  function closeDocumentViewerTab(tabId){
+    const idx = documentViewerTabs.findIndex(t => t.id === tabId);
+    if (idx < 0) return;
+    const tab = documentViewerTabs[idx];
+    if (tab.docId) setPdfLastPage(tab.docId, tab.page || getPdfLastPage(tab.docId));
+    if (tab.blobUrl) URL.revokeObjectURL(tab.blobUrl);
+    documentViewerTabs.splice(idx, 1);
+    if (!documentViewerTabs.length){
+      closeDocument(true);
+      return;
+    }
+    const next = documentViewerTabs[Math.max(0, idx - 1)] || documentViewerTabs[0];
+    activateDocumentViewerTab(next.id);
   }
   function renderDocumentLibrary(){
     const list = byId('documentLibraryList');
@@ -1482,44 +1623,61 @@ initEntityTracker();
     renderDocumentLibrary();
     if (typeof setStatus === 'function') setStatus(`${added} PDF${added===1?'':'s'} uploaded${skipped ? '; '+skipped+' duplicate'+(skipped===1?'':'s')+' skipped' : ''}`);
   }
-  async function openDocument(id,page=1){
+  async function openDocument(id,page=null){
     const meta = ensureDocState().find(d => d.id === id);
+    const requestedPage = normalizePdfPage(page, getPdfLastPage(id));
     let rec = await getPdf(id);
-    if (!rec || !rec.blob){
-      if (meta && (meta.serverPath || meta.githubPath || meta.githubPagesUrl || meta.githubDownloadUrl)){
-        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
-        currentPdfUrl = null;
-        currentPdfRecord = meta;
-        const title = byId('documentViewerTitle');
-        const metaEl = byId('documentViewerMeta');
-        const frame = byId('documentViewerFrame');
-        const overlay = byId('documentViewerOverlay');
-        const url = meta.githubPagesUrl || meta.githubDownloadUrl || serverDocUrlForPath(meta.serverPath || meta.githubPath);
-        if (title) title.textContent = currentPdfRecord.name || 'PDF Document';
-        if (metaEl) metaEl.textContent = `${fmtBytes(currentPdfRecord.size)} • Server PDF viewer`;
-        if (frame) frame.src = url + (page ? ('#page=' + Math.max(1, parseInt(page,10)||1)) : '');
-        if (overlay) overlay.hidden = false;
-        document.body.classList.add('document-viewer-open');
-        if (typeof setStatus === 'function') setStatus('Opened server PDF document' + (page ? ' to page ' + Math.max(1, parseInt(page,10)||1) : ''));
-        return;
-      }
+    let baseUrl = '';
+    let kind = 'local';
+    let blobUrl = null;
+    let record = meta || rec || null;
+    if (rec && rec.blob){
+      blobUrl = URL.createObjectURL(rec.blob);
+      baseUrl = blobUrl;
+      kind = 'local';
+      record = meta || rec;
+    } else if (meta && (meta.serverPath || meta.githubPath || meta.githubPagesUrl || meta.githubDownloadUrl)){
+      baseUrl = meta.githubPagesUrl || meta.githubDownloadUrl || serverDocUrlForPath(meta.serverPath || meta.githubPath);
+      kind = 'server';
+      record = meta;
     }
-    if (!rec || !rec.blob){ alert('Could not find this PDF in browser storage or /assets/docs. Re-upload the file or run Sync Docs.'); return; }
-    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
-    currentPdfRecord = meta || rec;
-    currentPdfUrl = URL.createObjectURL(rec.blob);
-    const title = byId('documentViewerTitle');
-    const metaEl = byId('documentViewerMeta');
-    const frame = byId('documentViewerFrame');
-    const overlay = byId('documentViewerOverlay');
-    if (title) title.textContent = currentPdfRecord.name || 'PDF Document';
-    if (metaEl) metaEl.textContent = `${fmtBytes(currentPdfRecord.size)} • Local PDF viewer`;
-    if (frame) frame.src = currentPdfUrl + (page ? ('#page=' + Math.max(1, parseInt(page,10)||1)) : '');
-    if (overlay) overlay.hidden = false;
-    document.body.classList.add('document-viewer-open');
-    if (typeof setStatus === 'function') setStatus('Opened PDF document' + (page ? ' to page ' + Math.max(1, parseInt(page,10)||1) : ''));
+    if (!baseUrl){ alert('Could not find this PDF in browser storage or /assets/docs. Re-upload the file or run Sync Docs.'); return; }
+    const existing = documentViewerTabs.find(t => t.docId === id);
+    if (existing){
+      if (blobUrl){ if (existing.blobUrl) URL.revokeObjectURL(existing.blobUrl); existing.blobUrl = blobUrl; existing.baseUrl = blobUrl; existing.kind = 'local'; }
+      existing.page = requestedPage;
+      existing.record = record;
+      existing.name = record?.name || 'PDF Document';
+      existing.size = record?.size || 0;
+      setPdfLastPage(id, requestedPage);
+      activateDocumentViewerTab(existing.id);
+    } else {
+      const tab = {
+        id: 'pdftab_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7),
+        docId: id,
+        name: record?.name || 'PDF Document',
+        size: record?.size || 0,
+        page: requestedPage,
+        kind,
+        baseUrl,
+        blobUrl,
+        record
+      };
+      documentViewerTabs.push(tab);
+      setPdfLastPage(id, requestedPage);
+      activateDocumentViewerTab(tab.id);
+    }
+    if (typeof setStatus === 'function') setStatus('Opened PDF document to page ' + requestedPage);
   }
-  function closeDocument(){
+  function closeDocument(closeAll=false){
+    if (!closeAll && activeDocumentTabId){
+      syncCurrentTabPageFromInput();
+      closeDocumentViewerTab(activeDocumentTabId);
+      return;
+    }
+    documentViewerTabs.forEach(tab => { if (tab.docId) setPdfLastPage(tab.docId, tab.page || getPdfLastPage(tab.docId)); if (tab.blobUrl) URL.revokeObjectURL(tab.blobUrl); });
+    documentViewerTabs = [];
+    activeDocumentTabId = null;
     const frame = byId('documentViewerFrame');
     const overlay = byId('documentViewerOverlay');
     if (frame) frame.removeAttribute('src');
@@ -1528,6 +1686,8 @@ initEntityTracker();
     currentPdfRecord = null;
     if (overlay) overlay.hidden = true;
     document.body.classList.remove('document-viewer-open');
+    renderDocumentViewerTabs();
+    persistOpenPdfTabs();
   }
   async function removeDocument(id){
     const docs = ensureDocState();
@@ -1536,7 +1696,7 @@ initEntityTracker();
     if (!confirm('Remove "' + doc.name + '" from the Document Library?')) return;
     await deletePdf(id);
     state.documents = docs.filter(d => d.id !== id);
-    if (currentPdfRecord && currentPdfRecord.id === id) closeDocument();
+    documentViewerTabs.filter(t => t.docId === id).slice().forEach(t => closeDocumentViewerTab(t.id));
     saveDocState();
     renderDocumentLibrary();
     if (typeof setStatus === 'function') setStatus('Removed PDF document');
@@ -1557,11 +1717,9 @@ initEntityTracker();
     } catch (err) {
       console.warn('Could not update stored PDF metadata name', err);
     }
-    if (currentPdfRecord && currentPdfRecord.id === id){
-      currentPdfRecord.name = cleanName;
-      const title = byId('documentViewerTitle');
-      if (title) title.textContent = cleanName;
-    }
+    documentViewerTabs.forEach(t => { if (t.docId === id) t.name = cleanName; });
+    if (currentPdfRecord && currentPdfRecord.id === id){ currentPdfRecord.name = cleanName; }
+    if (documentViewerTabs.some(t => t.id === activeDocumentTabId && t.docId === id)) activateDocumentViewerTab(activeDocumentTabId);
     saveDocState();
     renderDocumentLibrary();
     if (typeof setStatus === 'function') setStatus('Renamed displayed document name');
@@ -1580,10 +1738,24 @@ initEntityTracker();
     state.documentGuideHtml = (typeof sanitizeHtml === 'function') ? sanitizeHtml(editor.innerHTML) : editor.innerHTML;
     saveDocState();
   }
+  async function maybeRestoreOpenPdfTabs(){
+    const saved = loadPersistedPdfTabs();
+    if (!saved || !Array.isArray(saved.tabs) || !saved.tabs.length) return;
+    const available = saved.tabs.filter(t => ensureDocState().some(d => d.id === t.docId));
+    if (!available.length){ clearPersistedPdfTabs(); return; }
+    const msg = 'Reopen ' + available.length + ' PDF' + (available.length===1?'':'s') + ' from your last session to their recent page?';
+    if (!confirm(msg)){ clearPersistedPdfTabs(); return; }
+    for (const t of available){
+      try { await openDocument(t.docId, normalizePdfPage(t.page, getPdfLastPage(t.docId))); } catch(err){ console.warn('Could not reopen PDF tab', t, err); }
+    }
+    const active = available.find(t => t.docId === saved.activeDocId);
+    if (active){ const tab = documentViewerTabs.find(x => x.docId === active.docId); if (tab) activateDocumentViewerTab(tab.id); }
+  }
   function initDocumentLibrary(){
     if (!byId('documentLibraryTab')) return;
     ensureDocState();
     renderGuideEditor();
+    ensureDocumentViewerTabsUi();
     byId('showOracleLibraryTab')?.addEventListener('click', () => showRightTab('oracles'));
     byId('showDocumentLibraryTab')?.addEventListener('click', () => showRightTab('documents'));
     byId('showGuideLibraryTab')?.addEventListener('click', () => showRightTab('guide'));
@@ -1660,16 +1832,26 @@ initEntityTracker();
       renderDocumentLibrary();
       if (typeof setStatus === 'function') setStatus('Added document tag');
     });
-    byId('documentViewerClose')?.addEventListener('click', closeDocument);
-    byId('documentViewerOpenNew')?.addEventListener('click', () => { if (currentPdfUrl) window.open(currentPdfUrl, '_blank', 'noopener'); });
+    byId('documentViewerTabs')?.addEventListener('click', evt => {
+      const close = evt.target.closest('[data-viewer-tab-close]');
+      if (close){ evt.preventDefault(); evt.stopPropagation(); closeDocumentViewerTab(close.dataset.viewerTabClose); return; }
+      const tab = evt.target.closest('[data-viewer-tab]');
+      if (tab){ evt.preventDefault(); syncCurrentTabPageFromInput(); activateDocumentViewerTab(tab.dataset.viewerTab); }
+    });
+    byId('documentViewerClose')?.addEventListener('click', () => closeDocument(false));
+    byId('documentViewerOpenNew')?.addEventListener('click', () => { const tab = documentViewerTabs.find(t => t.id === activeDocumentTabId); if (tab) window.open(makePdfSrc(tab.baseUrl, tab.page), '_blank', 'noopener'); });
     byId('guideEditor')?.addEventListener('input', saveGuideEditor);
     byId('clearGuideEditor')?.addEventListener('click', () => { if(confirm('Clear the Guide editor?')){ const ed=byId('guideEditor'); if(ed) ed.innerHTML=''; state.documentGuideHtml=''; saveDocState(); }});
     document.addEventListener('keydown', evt => { if (evt.key === 'Escape' && document.body.classList.contains('document-viewer-open')) closeDocument(); });
     renderDocumentLibrary();
+    const restoreAfterSync = () => { if (!sessionStorage.getItem('hostilePdfRestorePrompted')){ sessionStorage.setItem('hostilePdfRestorePrompted','1'); maybeRestoreOpenPdfTabs().catch(err => console.warn('PDF restore skipped:', err)); } };
     if (!sessionStorage.getItem('hostileGithubDocsSyncedOnce')){
       sessionStorage.setItem('hostileGithubDocsSyncedOnce','1');
-      syncGithubDocsFolder().catch(err => console.warn('Server docs auto-sync skipped:', err));
+      syncGithubDocsFolder().catch(err => console.warn('Server docs auto-sync skipped:', err)).finally(restoreAfterSync);
+    } else {
+      setTimeout(restoreAfterSync, 200);
     }
+    window.addEventListener('beforeunload', () => { syncCurrentTabPageFromInput(); persistOpenPdfTabs(); });
     window.HostileDocuments = {
       openDocument,
       closeDocument,
