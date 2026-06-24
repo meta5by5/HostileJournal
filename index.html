@@ -98,7 +98,7 @@
           <div class="comment-action-row comment-action-row-right">
             <button id="commentDiceRollButton" class="secondary icon-button" type="button" title="Roll Starforged dice" aria-label="Roll Starforged dice">🎲</button>
             <button id="clearJournalComment" class="secondary icon-button" type="button" title="Clear comment" aria-label="Clear comment editor"><img class="button-inline-icon" src="./img/delete-icon.png" alt=""></button>
-            <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment"><img class="button-inline-icon" src="./img/add-comment-icon.png" alt=""></button>
+            <button id="addJournalComment" class="secondary icon-button add-comment-icon" type="button" title="Add Comment" aria-label="Add Comment"><span class="button-inline-icon add-comment-upload-arrow" aria-hidden="true">↗</span></button>
           </div>
         </div>
         <div id="journalCommentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Add a note, interpretation, ruling, clue, or campaign comment..."></div>
@@ -132,9 +132,11 @@
       <div id="documentLibraryTab" class="oracle-right-tab document-library-tab" hidden>
         <div class="section-header document-library-header">
           <h2>Document Library</h2>
-          <label class="file-button secondary compact-upload-button" title="Upload PDF documents">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
+          <button id="syncGithubDocsFolder" class="secondary compact-button" type="button" title="Read PDFs from /assets/docs">Sync Docs</button>
+          <label class="file-button secondary compact-upload-button" title="Upload PDF documents to local browser storage">Upload PDF<input id="documentPdfUpload" type="file" accept="application/pdf,.pdf" multiple></label>
         </div>
-        <p class="small">Upload PDFs to browser storage, then open them in the center workspace. PDFs are stored locally in this browser through IndexedDB.</p>
+        <p class="small">Reads PDFs published in <code>/assets/docs</code> and also lets you upload PDFs into this browser's local storage for offline viewing. If a synced doc is opened on a computer without the local file, the app will prompt you to attach a local PDF copy.</p>
+        <p id="githubDocsStatus" class="small">Use <strong>Sync Docs</strong> to refresh PDFs published in <code>/assets/docs</code>. Local uploads remain in this browser only.</p>
         <label class="document-search-label">Search Documents<input id="documentSearch" type="search" placeholder="Name or tag, e.g. colony, rules, sector..."></label>
         <div class="document-tag-tools">
           <input id="documentDefaultTags" type="text" list="documentTagDatalist" placeholder="Tags for next upload, comma separated">

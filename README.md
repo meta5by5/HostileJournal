@@ -106,3 +106,53 @@ Rich text editors now support PDF references through the existing `@` mention po
 
 ## Latest fix
 - Fixed the main navigation **Oracles** button so it opens the right-side Oracles tab directly and no longer leaves/activates the Entities card.
+
+## Document Library `/assets/docs` sync
+
+The Document Library no longer uses the GitHub API or any token. **Sync Docs** reads from the `assets/docs` folder relative to the running `index.html`. Local PDF uploads still save only to this browser's IndexedDB for offline viewing.
+
+Because browsers cannot reliably enumerate a static directory on every host, the sync supports two relative-site methods:
+
+1. A static manifest file at `assets/docs/index.json`, `assets/docs/docs.json`, or `assets/docs/manifest.json`.
+2. A plain directory listing at `assets/docs/` when the local/dev web server provides one.
+
+Recommended `assets/docs/index.json` format:
+
+```json
+{
+  "files": [
+    {
+      "name": "temp.pdf",
+      "path": "assets/docs/temp.pdf",
+      "tags": ["temp", "reference"]
+    },
+    {
+      "name": "doc.pdf",
+      "path": "assets/docs/doc.pdf",
+      "tags": ["manual", "rules"]
+    }
+  ]
+}
+```
+
+A shorter form is also supported when you only need filenames:
+
+```json
+{
+  "files": ["temp.pdf", "doc.pdf"]
+}
+```
+
+Synced server documents appear in the Documents list even before a local PDF copy is stored in IndexedDB. Opening a synced document on a browser that does not have the PDF stored locally prompts the user to select the matching PDF file. Once attached, it can be viewed offline; a black down-arrow indicator marks documents with a local copy stored in this browser.
+
+## 2026-06-24 Docs sync refinement
+
+- Local/offline PDF documents now show a non-interactive black down-arrow indicator beside the edit button with the tooltip "File stored locally".
+- **Sync Docs** first tries to read a directory listing at `assets/docs/`, then merges anything found with `assets/docs/index.json`.
+- Static hosts such as GitHub Pages generally do not allow browser JavaScript to rewrite `assets/docs/index.json` or enumerate folders reliably. To keep the manifest updated, run this from the repository root after adding PDFs:
+
+```bash
+node scripts/build-docs-index.js
+```
+
+That script scans `assets/docs` and rewrites `assets/docs/index.json` with every PDF found there.

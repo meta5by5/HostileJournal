@@ -1106,7 +1106,7 @@ initEntityTracker();
   }
   function ensureDocState(){
     if (!Array.isArray(state.documents)) state.documents = [];
-    state.documents.forEach(d=>{ if(!Array.isArray(d.tags)) d.tags = []; if(!d.fingerprint && d.name && d.size) d.fingerprint = makeDocFingerprint(d.name,d.size); });
+    state.documents.forEach(d=>{ if(!Array.isArray(d.tags)) d.tags = []; if(!d.fingerprint && d.name && d.size) d.fingerprint = makeDocFingerprint(d.name,d.size); if (typeof d.hasLocalBlob === 'undefined') d.hasLocalBlob = !(d.serverPath || d.githubPath) || d.source === 'local'; if (!d.source) d.source = (d.serverPath || d.githubPath) ? (d.hasLocalBlob ? 'local+server' : 'server') : 'local'; });
     return state.documents;
   }
   function openDb(){
@@ -1214,9 +1214,236 @@ initEntityTracker();
       card.draggable = true;
       card.dataset.docDrag = doc.id;
       card.title = 'Drag into a text editor to create a PDF page link';
-      card.innerHTML = `<div class="document-card-main"><a href="#" class="document-card-title document-card-title-link" data-doc-open="${escDoc(doc.id)}" data-doc-drag="${escDoc(doc.id)}" draggable="true" title="Open PDF, or drag into an editor to link it">${escDoc(doc.name)}</a><div class="document-card-tags">${tagChips}</div><div class="document-card-tag-editor" data-doc-tag-editor="${escDoc(doc.id)}" hidden><div class="document-card-edit-tags">${editableTagChips}</div><div class="document-card-tag-row"><input class="document-card-tag-input" type="text" list="documentTagDatalist" data-doc-new-tag="${escDoc(doc.id)}" placeholder="Add new tag" aria-label="Add new document tag"><select class="document-card-tag-select" data-doc-add-tag="${escDoc(doc.id)}" aria-label="Add existing tag"><option value="">+ existing</option>${tagOptions}</select></div></div></div><div class="document-card-actions"><button class="secondary document-rename-button" type="button" data-doc-rename="${escDoc(doc.id)}" title="Rename displayed document name" aria-label="Rename document">✎</button><button class="secondary document-tag-toggle" type="button" data-doc-toggle-tags="${escDoc(doc.id)}" title="Modify tags" aria-label="Modify tags">⚑</button><button class="secondary" type="button" data-doc-delete="${escDoc(doc.id)}" title="Remove PDF" aria-label="Remove PDF">🗑</button></div>`;
+      const sourceInfo = doc.githubPath ? `<div class="document-card-github"><a href="${escDoc(doc.githubPagesUrl || doc.githubDownloadUrl || '#')}" target="_blank" rel="noopener">${doc.hasLocalBlob ? 'Local + ' : ''}/assets/docs: ${escDoc(doc.githubPath)}</a></div>` : (doc.githubUploadError ? `<div class="document-card-github">Server doc sync failed</div>` : '');
+      const localDownloadButton = doc.hasLocalBlob ? `<span class="document-local-indicator" title="File stored locally" aria-label="File stored locally" role="img">⬇</span>` : '';
+      card.innerHTML = `<div class="document-card-main"><a href="#" class="document-card-title document-card-title-link" data-doc-open="${escDoc(doc.id)}" data-doc-drag="${escDoc(doc.id)}" draggable="true" title="Open PDF, or drag into an editor to link it">${escDoc(doc.name)}</a><div class="document-card-tags">${tagChips}</div>${sourceInfo}<div class="document-card-tag-editor" data-doc-tag-editor="${escDoc(doc.id)}" hidden><div class="document-card-edit-tags">${editableTagChips}</div><div class="document-card-tag-row"><input class="document-card-tag-input" type="text" list="documentTagDatalist" data-doc-new-tag="${escDoc(doc.id)}" placeholder="Add new tag" aria-label="Add new document tag"><select class="document-card-tag-select" data-doc-add-tag="${escDoc(doc.id)}" aria-label="Add existing tag"><option value="">+ existing</option>${tagOptions}</select></div></div></div><div class="document-card-actions"><button class="secondary document-rename-button" type="button" data-doc-rename="${escDoc(doc.id)}" title="Rename displayed document name" aria-label="Rename document">✎</button>${localDownloadButton}<button class="secondary document-tag-toggle" type="button" data-doc-toggle-tags="${escDoc(doc.id)}" title="Modify tags" aria-label="Modify tags">⚑</button><button class="secondary" type="button" data-doc-delete="${escDoc(doc.id)}" title="Remove PDF" aria-label="Remove PDF">🗑</button></div>`;
       list.appendChild(card);
     });
+  }
+  function getGithubDocsConfig(){
+    const owner = 'meta5by5';
+    const repo = 'HostileJournal';
+    const branch = 'main';
+    const folder = 'assets/docs';
+    return { owner, repo, branch, folder, token:'', autoUpload:false };
+  }
+  function saveGithubDocsConfig(){ /* server docs are read-only from /assets/docs */ }
+  function loadGithubDocsConfig(){ /* no GitHub upload settings are used */ }
+  function setGithubDocsStatus(text){
+    const el = byId('githubDocsStatus');
+    if (el) el.textContent = text;
+    if (typeof setStatus === 'function') setStatus(text);
+  }
+  function sanitizeGithubPdfName(name){
+    const raw = String(name || 'document.pdf').replace(/\\/g,'/').split('/').pop();
+    const base = raw.replace(/\.pdf$/i,'').trim() || 'document';
+    return base.replace(/[^a-zA-Z0-9._ -]+/g,'-').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^[-.]+|[-.]+$/g,'').slice(0,120) + '.pdf';
+  }
+  function encodePathForUrl(path){
+    return String(path||'').split('/').map(encodeURIComponent).join('/');
+  }
+  async function fileToBase64(file){
+    return '';
+  }
+  async function githubApi(path, cfg, options={}){
+    throw new Error('GitHub API sync has been removed. Use relative /assets/docs sync instead.');
+  }
+  async function uploadPdfToGithubDocs(file, meta){
+    return null;
+  }
+
+  function getServerDocsFolder(){
+    return 'assets/docs';
+  }
+  function serverDocUrlForPath(path){
+    return new URL(encodePathForUrl(path), document.baseURI).href;
+  }
+  function normalizeServerDocEntry(entry){
+    if (!entry) return null;
+    const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
+    let name = '';
+    let path = '';
+    let size = 0;
+    let tags = [];
+    if (typeof entry === 'string'){
+      name = entry.replace(/\\/g,'/').split('/').pop();
+      path = entry.includes('/') ? entry.replace(/^\/+/, '') : `${folder}/${entry}`;
+    } else if (typeof entry === 'object'){
+      name = entry.name || entry.filename || entry.title || '';
+      path = entry.path || entry.url || entry.href || '';
+      size = Number(entry.size || 0) || 0;
+      tags = parseDocTags(Array.isArray(entry.tags) ? entry.tags.join(',') : (entry.tags || ''));
+      if (!path && name) path = `${folder}/${name}`;
+      if (!name && path) name = String(path).replace(/\\/g,'/').split('/').pop();
+    }
+    path = String(path || '').replace(/\\/g,'/').replace(/^\.\//,'').replace(/^\/+/, '');
+    if (!path || !String(name||path).toLowerCase().endsWith('.pdf')) return null;
+    if (!path.includes('/')) path = `${folder}/${path}`;
+    name = name || path.split('/').pop();
+    return { name, path, size, tags };
+  }
+  async function loadServerDocsFromManifest(){
+    const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
+    const manifests = [`${folder}/index.json`, `${folder}/docs.json`, `${folder}/manifest.json`];
+    for (const manifestPath of manifests){
+      try {
+        const res = await fetch(new URL(manifestPath, document.baseURI).href, { cache:'no-store' });
+        if (!res.ok) continue;
+        const json = await res.json();
+        const rows = Array.isArray(json) ? json : (Array.isArray(json.files) ? json.files : (Array.isArray(json.documents) ? json.documents : []));
+        const files = rows.map(normalizeServerDocEntry).filter(Boolean);
+        if (files.length) return { files, source: manifestPath };
+      } catch (err) {
+        console.warn('Document manifest read skipped:', manifestPath, err);
+      }
+    }
+    return { files: [], source: '' };
+  }
+  async function loadServerDocsFromDirectoryListing(){
+    const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
+    try {
+      const res = await fetch(new URL(folder + '/', document.baseURI).href, { cache:'no-store' });
+      if (!res.ok) return { files: [], source: '' };
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const files = [...doc.querySelectorAll('a[href]')]
+        .map(a => a.getAttribute('href') || '')
+        .filter(href => href && href.toLowerCase().split('?')[0].split('#')[0].endsWith('.pdf'))
+        .map(href => {
+          const url = new URL(href, new URL(folder + '/', document.baseURI));
+          const relPath = url.pathname.replace(/^\//,'').replace(/^.*?assets\/docs\//, 'assets/docs/');
+          return normalizeServerDocEntry({ name: decodeURIComponent(url.pathname.split('/').pop() || ''), path: relPath });
+        })
+        .filter(Boolean);
+      return { files, source: folder + '/' };
+    } catch (err) {
+      console.warn('Directory listing read skipped:', err);
+      return { files: [], source: '' };
+    }
+  }
+  function mergeServerDocLists(...lists){
+    const byPath = new Map();
+    lists.flat().filter(Boolean).forEach(item => {
+      const norm = normalizeServerDocEntry(item);
+      if (!norm) return;
+      const key = String(norm.path || norm.name || '').toLowerCase();
+      const existing = byPath.get(key) || {};
+      byPath.set(key, { ...existing, ...norm, tags: [...new Set([...(existing.tags||[]), ...(norm.tags||[])])].sort((a,b)=>a.localeCompare(b)) });
+    });
+    return [...byPath.values()].sort((a,b)=>String(a.name||a.path).localeCompare(String(b.name||b.path)));
+  }
+
+  async function syncGithubDocsFolder(){
+    const folder = getServerDocsFolder();
+    setGithubDocsStatus('Reading /' + folder + ' relative to this site...');
+    // Try to read the folder itself first. Some local/static servers expose directory listings.
+    // GitHub Pages usually does not, so index.json remains the reliable published manifest.
+    const listingResult = await loadServerDocsFromDirectoryListing();
+    const manifestResult = await loadServerDocsFromManifest();
+    const files = mergeServerDocLists(listingResult.files, manifestResult.files);
+    const sources = [listingResult.source, manifestResult.source].filter(Boolean).join(' + ') || '/' + folder;
+    if (!files.length){
+      setGithubDocsStatus('No PDFs found in /' + folder + '. If your host does not expose directory listings, run scripts/build-docs-index.js after adding PDFs so /' + folder + '/index.json is refreshed.');
+      return;
+    }
+    const docs = ensureDocState();
+    let added = 0, updated = 0;
+    for (const item of files){
+      const path = item.path;
+      const url = serverDocUrlForPath(path);
+      let doc = docs.find(d => d.serverPath === path || d.githubPath === path || String(d.name||'').toLowerCase() === String(item.name||'').toLowerCase());
+      if (doc){
+        const before = JSON.stringify({p:doc.serverPath||doc.githubPath,u:doc.githubPagesUrl||doc.githubDownloadUrl,n:doc.name});
+        doc.serverPath = path;
+        doc.githubPath = path; // retained for compatibility with existing document records and links
+        doc.githubSha = doc.githubSha || '';
+        doc.githubPagesUrl = url;
+        doc.githubDownloadUrl = url;
+        doc.githubHtmlUrl = url;
+        doc.source = doc.hasLocalBlob ? 'local+server' : 'server';
+        if (item.size) doc.size = item.size;
+        if (Array.isArray(item.tags) && item.tags.length){
+          doc.tags = [...new Set([...(Array.isArray(doc.tags)?doc.tags:[]), ...item.tags])].sort((a,b)=>a.localeCompare(b));
+        }
+        if (JSON.stringify({p:doc.serverPath||doc.githubPath,u:doc.githubPagesUrl||doc.githubDownloadUrl,n:doc.name}) !== before) updated++;
+      } else {
+        const id = 'srvpdf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+        docs.push({
+          id,
+          name: item.name || 'PDF Document',
+          size: item.size || 0,
+          tags: Array.isArray(item.tags) ? item.tags : [],
+          type: 'application/pdf',
+          source: 'server',
+          hasLocalBlob: false,
+          addedAt: new Date().toISOString(),
+          serverPath: path,
+          githubPath: path,
+          githubSha: '',
+          githubPagesUrl: url,
+          githubDownloadUrl: url,
+          githubHtmlUrl: url
+        });
+        added++;
+      }
+    }
+    saveDocState();
+    renderDocumentLibrary();
+    setGithubDocsStatus(`Synced /${folder} from ${sources}: ${added} new, ${updated} updated, ${files.length} PDF${files.length===1?'':'s'} found.`);
+  }
+  function chooseLocalPdfFile(expectedName=''){
+    return new Promise(resolve => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/pdf,.pdf';
+      input.style.position = 'fixed';
+      input.style.left = '-9999px';
+      document.body.appendChild(input);
+      input.addEventListener('change', () => {
+        const file = input.files && input.files[0] ? input.files[0] : null;
+        input.remove();
+        resolve(file);
+      }, { once:true });
+      input.addEventListener('cancel', () => { input.remove(); resolve(null); }, { once:true });
+      input.click();
+    });
+  }
+  async function attachLocalPdfCopy(id, file){
+    const docs = ensureDocState();
+    const doc = docs.find(d => d.id === id);
+    if (!doc || !file) return false;
+    if (!(file.type === 'application/pdf' || String(file.name||'').toLowerCase().endsWith('.pdf'))) throw new Error('Select a PDF file.');
+    const fingerprint = makeDocFingerprint(file.name, file.size);
+    doc.size = file.size;
+    doc.fingerprint = fingerprint;
+    doc.hasLocalBlob = true;
+    doc.source = (doc.serverPath || doc.githubPath) ? 'local+server' : 'local';
+    doc.localUpdatedAt = new Date().toISOString();
+    if (!doc.name) doc.name = file.name;
+    await putPdf({ ...doc, blob: file });
+    saveDocState();
+    renderDocumentLibrary();
+    return true;
+  }
+  async function promptForLocalPdfCopy(doc){
+    const msg = `"${doc.name || 'This PDF'}" is listed from /assets/docs but is not stored in this browser yet.\n\nSelect the matching PDF file to store a local offline copy?`;
+    if (!confirm(msg)) return false;
+    const file = await chooseLocalPdfFile(doc.name || '');
+    if (!file) return false;
+    await attachLocalPdfCopy(doc.id, file);
+    return true;
+  }
+  async function downloadLocalDocument(id){
+    const doc = ensureDocState().find(d => d.id === id);
+    const rec = await getPdf(id);
+    if (!rec || !rec.blob){ alert('No local PDF copy is stored in this browser.'); return; }
+    const url = URL.createObjectURL(rec.blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = sanitizeGithubPdfName(doc?.name || rec.name || 'document.pdf');
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
   }
   async function handlePdfUpload(evt){
     const files = [...(evt.target.files || [])].filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
@@ -1227,9 +1454,17 @@ initEntityTracker();
     for (const file of files){
       const fingerprint = makeDocFingerprint(file.name, file.size);
       const duplicate = docs.find(d => (d.fingerprint || makeDocFingerprint(d.name,d.size)) === fingerprint);
-      if (duplicate){ skipped++; continue; }
+      if (duplicate){
+        if (!duplicate.hasLocalBlob){
+          await attachLocalPdfCopy(duplicate.id, file);
+          added++;
+        } else {
+          skipped++;
+        }
+        continue;
+      }
       const id = 'pdf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-      const meta = { id, name: file.name, size: file.size, fingerprint, tags: uploadTags.slice(), type: 'application/pdf', addedAt: new Date().toISOString() };
+      const meta = { id, name: file.name, size: file.size, fingerprint, tags: uploadTags.slice(), type: 'application/pdf', source: 'local', hasLocalBlob: true, addedAt: new Date().toISOString() };
       await putPdf({ ...meta, blob: file });
       docs.unshift(meta);
       added++;
@@ -1241,7 +1476,14 @@ initEntityTracker();
   }
   async function openDocument(id,page=1){
     const meta = ensureDocState().find(d => d.id === id);
-    const rec = await getPdf(id);
+    let rec = await getPdf(id);
+    if (!rec || !rec.blob){
+      if (meta && (meta.serverPath || meta.githubPath || meta.githubPagesUrl || meta.githubDownloadUrl)){
+        const attached = await promptForLocalPdfCopy(meta);
+        if (!attached) return;
+        rec = await getPdf(id);
+      }
+    }
     if (!rec || !rec.blob){ alert('Could not find this PDF in browser storage. Re-upload the file.'); return; }
     if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
     currentPdfRecord = meta || rec;
@@ -1325,7 +1567,9 @@ initEntityTracker();
     byId('showOracleLibraryTab')?.addEventListener('click', () => showRightTab('oracles'));
     byId('showDocumentLibraryTab')?.addEventListener('click', () => showRightTab('documents'));
     byId('showGuideLibraryTab')?.addEventListener('click', () => showRightTab('guide'));
+    loadGithubDocsConfig();
     byId('documentPdfUpload')?.addEventListener('change', handlePdfUpload);
+    byId('syncGithubDocsFolder')?.addEventListener('click', () => syncGithubDocsFolder().catch(err => alert('Could not sync /assets/docs: ' + err.message)));
     byId('documentSearch')?.addEventListener('input', renderDocumentLibrary);
     byId('documentDefaultTags')?.addEventListener('change', () => { if (typeof setStatus === 'function') setStatus('Document upload tags updated'); });
     byId('documentTagFilterChips')?.addEventListener('click', evt => { const chip = evt.target.closest('.document-tag-chip'); if (!chip) return; chip.classList.toggle('active'); renderDocumentLibrary(); });
@@ -1334,8 +1578,10 @@ initEntityTracker();
       const toggleBtn = evt.target.closest('[data-doc-toggle-tags]');
       const renameBtn = evt.target.closest('[data-doc-rename]');
       const removeTagBtn = evt.target.closest('[data-doc-remove-tag]');
+      const downloadBtn = evt.target.closest('[data-doc-download]');
       const delBtn = evt.target.closest('[data-doc-delete]');
       if (openBtn){ evt.preventDefault(); openDocument(openBtn.dataset.docOpen).catch(err => alert('Could not open PDF: ' + err.message)); return; }
+      if (downloadBtn){ evt.preventDefault(); downloadLocalDocument(downloadBtn.dataset.docDownload).catch(err => alert('Could not download local PDF: ' + err.message)); return; }
       if (renameBtn){ evt.preventDefault(); renameDocument(renameBtn.dataset.docRename).catch(err => alert('Could not rename PDF: ' + err.message)); return; }
       if (toggleBtn){
         const card = toggleBtn.closest('.document-card');
@@ -1386,10 +1632,15 @@ initEntityTracker();
     byId('clearGuideEditor')?.addEventListener('click', () => { if(confirm('Clear the Guide editor?')){ const ed=byId('guideEditor'); if(ed) ed.innerHTML=''; state.documentGuideHtml=''; saveDocState(); }});
     document.addEventListener('keydown', evt => { if (evt.key === 'Escape' && document.body.classList.contains('document-viewer-open')) closeDocument(); });
     renderDocumentLibrary();
+    if (!sessionStorage.getItem('hostileGithubDocsSyncedOnce')){
+      sessionStorage.setItem('hostileGithubDocsSyncedOnce','1');
+      syncGithubDocsFolder().catch(err => console.warn('Server docs auto-sync skipped:', err));
+    }
     window.HostileDocuments = {
       openDocument,
       closeDocument,
       renderDocumentLibrary,
+      syncGithubDocsFolder,
       getDocumentMeta: id => ensureDocState().find(d => d.id === id) || null,
       importPdfFile: async (file, tags=[]) => {
         if (!file || !(file.type === 'application/pdf' || String(file.name||'').toLowerCase().endsWith('.pdf'))) return null;
@@ -1398,7 +1649,7 @@ initEntityTracker();
         let existing = docs.find(d => (d.fingerprint || makeDocFingerprint(d.name,d.size)) === fingerprint);
         if (existing) return { doc: existing, duplicate: true };
         const id = 'pdf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-        const meta = { id, name: file.name, size: file.size, fingerprint, tags: parseDocTags(tags.join ? tags.join(',') : tags), type: 'application/pdf', addedAt: new Date().toISOString() };
+        const meta = { id, name: file.name, size: file.size, fingerprint, tags: parseDocTags(tags.join ? tags.join(',') : tags), type: 'application/pdf', source: 'local', hasLocalBlob: true, addedAt: new Date().toISOString() };
         await putPdf({ ...meta, blob: file });
         docs.unshift(meta);
         saveDocState();
@@ -1803,4 +2054,103 @@ document.addEventListener('click',function(e){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', replaceOracleNavButton); else replaceOracleNavButton();
   setTimeout(replaceOracleNavButton, 250);
   setTimeout(replaceOracleNavButton, 1000);
+})();
+
+/* 2026-06-24 definitive top-nav isolation fix.
+   The app had accumulated several target-level click handlers during prior patches.
+   Some of those handlers called showLeftTab('scene'), so each new fix only moved
+   the Scene Builder side effect to a neighboring button. This document-capture
+   guard intercepts main navigation before target handlers and gives each top-nav
+   button one explicit, isolated responsibility. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function resetTop(){
+    try{
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      var layout=document.querySelector('.layout'); if(layout) layout.scrollTop=0;
+    }catch(e){}
+  }
+  function setRightTab(tab){
+    if(typeof window.showHostileRightTab === 'function'){
+      window.showHostileRightTab(tab);
+      return;
+    }
+    if(typeof window.showRightTabPublic === 'function'){
+      window.showRightTabPublic(tab);
+      return;
+    }
+    var tabs = {
+      oracles: ['oracleLibraryTab','showOracleLibraryTab'],
+      guide: ['guideLibraryTab','showGuideLibraryTab'],
+      documents: ['documentLibraryTab','showDocumentLibraryTab']
+    };
+    Object.keys(tabs).forEach(function(key){
+      var panel=byId(tabs[key][0]);
+      var btn=byId(tabs[key][1]);
+      var active = key === tab;
+      if(panel){ panel.hidden = !active; panel.classList.toggle('active-oracle-tab', active); }
+      if(btn) btn.classList.toggle('active', active);
+    });
+  }
+  function openRightPanel(tab){
+    var panel=byId('oraclePanel');
+    if(panel){
+      document.querySelectorAll('.side-panel').forEach(function(p){ p.classList.toggle('is-open', p===panel); });
+      panel.scrollTop=0;
+    }
+    var backdrop=byId('panelBackdrop'); if(backdrop) backdrop.hidden=false;
+    document.body.classList.add('side-panel-open');
+    setRightTab(tab);
+  }
+  function showCenterOnly(tab){
+    if(typeof window.showCenterTab === 'function') window.showCenterTab(tab, true);
+    else if(typeof showCenterTab === 'function') showCenterTab(tab, true);
+  }
+  function hardHandleMainNav(ev){
+    var btn = ev.target && ev.target.closest && ev.target.closest('.top-nav button, .mobile-panel-tabs.top-nav button');
+    if(!btn) return;
+    var id = btn.id;
+    var handled = true;
+    if(id === 'showJournalNav'){
+      showCenterOnly('journal');
+    }else if(id === 'showSceneElementsNav' || id === 'focusOutputPanel'){
+      showCenterOnly('output');
+    }else if(id === 'openOraclePanel'){
+      openRightPanel('oracles');
+    }else if(id === 'openGuidePanel'){
+      // Main Guide opens the right Guide tab; if the center Guide is active,
+      // return the center to Journal so the same Guide card is not duplicated.
+      try{
+        if(window.state && window.state.activeCenterTab === 'guide') showCenterOnly('journal');
+        var cv=byId('centerGuideView');
+        if(cv && cv.classList.contains('active-view')) showCenterOnly('journal');
+      }catch(e){}
+      openRightPanel('guide');
+    }else if(id === 'openControlsPanel'){
+      if(typeof window.showLeftTab === 'function') window.showLeftTab('scene', true);
+      var panel=byId('controlsPanel');
+      if(panel){ document.querySelectorAll('.side-panel').forEach(function(p){ p.classList.toggle('is-open', p===panel); }); }
+      var backdrop=byId('panelBackdrop'); if(backdrop) backdrop.hidden=false;
+      document.body.classList.add('side-panel-open');
+    }else if(id === 'openCrewLinkPanel'){
+      if(typeof window.showLeftTab === 'function') window.showLeftTab('crew', true);
+    }else if(id === 'openLivingShipPanel'){
+      if(typeof window.showLeftTab === 'function') window.showLeftTab('living', true);
+    }else if(id === 'openEntityListPanel'){
+      if(typeof window.showLeftTab === 'function') window.showLeftTab('entityList', true);
+    }else{
+      handled = false;
+    }
+    if(handled){
+      ev.preventDefault();
+      ev.stopPropagation();
+      if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      resetTop(); setTimeout(resetTop,0); setTimeout(resetTop,60);
+      return false;
+    }
+  }
+  document.addEventListener('click', hardHandleMainNav, true);
 })();

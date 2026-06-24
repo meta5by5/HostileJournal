@@ -1851,3 +1851,70 @@ body.center-scene-active .center-top-row h2::after{content:"";}
   .center-top-row .center-tabs{order:2;flex-basis:100%!important;justify-content:flex-start!important;margin-left:0!important;}
   .center-top-row .center-scene-actions{margin-left:auto!important;}
 }
+
+
+/* GitHub document upload settings */
+.github-doc-upload-settings{margin:.35rem 0 .55rem;border:1px solid var(--border, #334155);border-radius:.5rem;padding:.35rem .5rem;background:rgba(15,23,42,.35)}
+.github-doc-upload-settings summary{cursor:pointer;font-weight:700;font-size:.85rem}
+.github-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-top:.4rem}
+.github-doc-grid label,.github-token-label{display:flex;flex-direction:column;gap:.15rem;font-size:.75rem}
+.github-doc-upload-settings input[type=text],.github-doc-upload-settings input[type=password]{min-height:1.75rem;padding:.25rem .4rem;font-size:.8rem}
+.compact-checkbox{display:flex;align-items:center;gap:.35rem;margin-top:.35rem;font-size:.8rem}
+.document-card-github{font-size:.72rem;opacity:.78;margin-top:.1rem}
+.document-card-github a{color:inherit;text-decoration:underline}
+
+.document-local-download{color:var(--accent);font-weight:900}
+.document-card-github{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.document-library-header{gap:.4rem;flex-wrap:wrap}
+.document-library-header .compact-button{width:auto;margin:0;padding:.45rem .65rem}
+
+/* 2026-06 compact main nav + upload arrow comment icon */
+.mobile-panel-tabs.top-nav button,
+.mobile-panel-tabs button{
+  min-height:31px!important;
+  padding:.34rem .5rem!important;
+  line-height:1.05!important;
+}
+:root{--sticky-nav-height:38px!important;}
+.add-comment-upload-arrow{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:1.2rem!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+
+/* 2026-06 local PDF indicator: make the download arrow black and more visible */
+.document-local-download{
+  color:#000!important;
+  font-weight:1000!important;
+  font-size:1.15rem!important;
+  line-height:1!important;
+  min-width:2rem!important;
+  padding:.22rem .42rem!important;
+  border:1px solid rgba(0,0,0,.45)!important;
+  background:#f8fafc!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.9)!important;
+}
+.document-local-download:hover{background:#e2e8f0!important;color:#000!important;}
+
+
+/* 2026-06 local PDF indicator: non-interactive stored-locally marker */
+.document-local-indicator{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  color:#000!important;
+  font-weight:1000!important;
+  font-size:1.25rem!important;
+  line-height:1!important;
+  min-width:1.6rem!important;
+  padding:0 .18rem!important;
+  border:0!important;
+  background:transparent!important;
+  cursor:default!important;
+  pointer-events:auto!important;
+  user-select:none!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.9)!important;
+}
