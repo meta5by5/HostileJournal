@@ -1278,14 +1278,14 @@ initEntityTracker();
       if (!name && path) name = String(path).replace(/\\/g,'/').split('/').pop();
     }
     path = String(path || '').replace(/\\/g,'/').replace(/^\.\//,'').replace(/^\/+/, '');
-    if (!path || !String(name||path).toLowerCase().endsWith('.pdf')) return null;
+    if (!path || !String(path).toLowerCase().split('?')[0].split('#')[0].endsWith('.pdf')) return null;
     if (!path.includes('/')) path = `${folder}/${path}`;
     name = name || path.split('/').pop();
     return { name, path, size, tags };
   }
   async function loadServerDocsFromManifest(){
     const folder = getServerDocsFolder().replace(/^\/+|\/+$/g,'');
-    const manifests = [`${folder}/index.json`, `index.json`, `${folder}/docs.json`, `${folder}/manifest.json`];
+    const manifests = ['./assets/index.json', 'assets/index.json'];
     const errors = [];
     for (const manifestPath of manifests){
       const url = new URL(manifestPath, document.baseURI).href;
@@ -1339,18 +1339,18 @@ initEntityTracker();
 
   async function syncGithubDocsFolder(){
     const folder = getServerDocsFolder();
-    setGithubDocsStatus('Reading ' + folder + '/index.json relative to this index.html...');
+    setGithubDocsStatus('Reading ./assets/index.json relative to this index.html...');
     const manifestResult = await loadServerDocsFromManifest();
     // Directory listings are optional. The manifest is authoritative so Sync Docs works on GitHub Pages and simple local servers.
     const listingResult = await loadServerDocsFromDirectoryListing();
     const files = mergeServerDocLists(manifestResult.files, listingResult.files);
-    const sources = [manifestResult.source, listingResult.source].filter(Boolean).join(' + ') || (folder + '/index.json');
+    const sources = [manifestResult.source, listingResult.source].filter(Boolean).join(' + ') || 'assets/index.json';
     if (!files.length){
       const details = (manifestResult.errors && manifestResult.errors.length) ? ' Details: ' + manifestResult.errors.join(' | ') : '';
       if (location.protocol === 'file:') {
         setGithubDocsStatus('Could not read ' + folder + '/index.json from file://. Start a local server in the app folder: python -m http.server 8000, then open http://localhost:8000/.' + details);
       } else {
-        setGithubDocsStatus('No PDFs found. Confirm ' + folder + '/index.json exists and contains a files array. The path is relative to this index.html.' + details);
+        setGithubDocsStatus('No PDFs found. Confirm ./assets/index.json exists and contains a files array. The path is relative to this index.html. Import JSON archives are ignored; only PDF entries are shown.' + details);
       }
       return;
     }
@@ -1397,7 +1397,7 @@ initEntityTracker();
     }
     saveDocState();
     renderDocumentLibrary();
-    setGithubDocsStatus(`Synced /${folder} from ${sources}: ${added} new, ${updated} updated, ${files.length} PDF${files.length===1?'':'s'} found.`);
+    setGithubDocsStatus(`Synced from ${sources}: ${added} new, ${updated} updated, ${files.length} PDF${files.length===1?'':'s'} found.`);
   }
   function chooseLocalPdfFile(expectedName=''){
     return new Promise(resolve => {
@@ -1589,7 +1589,7 @@ initEntityTracker();
     byId('showGuideLibraryTab')?.addEventListener('click', () => showRightTab('guide'));
     loadGithubDocsConfig();
     byId('documentPdfUpload')?.addEventListener('change', handlePdfUpload);
-    byId('syncGithubDocsFolder')?.addEventListener('click', () => syncGithubDocsFolder().catch(err => alert('Could not sync /assets/docs: ' + err.message)));
+    byId('syncGithubDocsFolder')?.addEventListener('click', () => syncGithubDocsFolder().catch(err => alert('Could not sync ./assets/index.json: ' + err.message)));
     byId('documentSearch')?.addEventListener('input', renderDocumentLibrary);
     byId('documentDefaultTags')?.addEventListener('change', () => { if (typeof setStatus === 'function') setStatus('Document upload tags updated'); });
     byId('documentTagFilterChips')?.addEventListener('click', evt => { const chip = evt.target.closest('.document-tag-chip'); if (!chip) return; chip.classList.toggle('active'); renderDocumentLibrary(); });
@@ -2156,7 +2156,7 @@ document.addEventListener('click',function(e){
       var backdrop=byId('panelBackdrop'); if(backdrop) backdrop.hidden=false;
       document.body.classList.add('side-panel-open');
     }else if(id === 'openCrewLinkPanel'){
-      if(typeof window.showLeftTab === 'function') window.showLeftTab('crew', true);
+      if(typeof window.showLeftTab === 'function') window.showLeftTab('crew', true); document.body.classList.add('crew-workspace-open'); document.body.classList.remove('entity-editor-workspace-open','entity-editor-overlay-open');
     }else if(id === 'openLivingShipPanel'){
       if(typeof window.showLeftTab === 'function') window.showLeftTab('living', true);
     }else if(id === 'openEntityListPanel'){
@@ -2176,7 +2176,7 @@ document.addEventListener('click',function(e){
 })();
 
 
-/* 2026-06-24 Docs Sync hard binding: Sync Docs reads assets/docs/index.json and adds server docs to the library. */
+/* 2026-06-24 Docs Sync hard binding: Sync Docs reads assets/index.json and adds server docs to the library. */
 (function(){
   function bindDocsSyncButton(){
     const old = document.getElementById('syncGithubDocsFolder');
@@ -2189,7 +2189,7 @@ document.addEventListener('click',function(e){
       ev.stopPropagation();
       if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       const status = document.getElementById('githubDocsStatus');
-      if(status) status.textContent = 'Reading assets/docs/index.json...';
+      if(status) status.textContent = 'Reading assets/index.json...';
       try{
         if(window.HostileDocuments && typeof window.HostileDocuments.syncGithubDocsFolder === 'function'){
           await window.HostileDocuments.syncGithubDocsFolder();
@@ -2197,7 +2197,7 @@ document.addEventListener('click',function(e){
           throw new Error('Document library is not initialized yet. Refresh the page and try again.');
         }
       }catch(err){
-        const msg = 'Could not read assets/docs/index.json: ' + (err && err.message ? err.message : err);
+        const msg = 'Could not read assets/index.json: ' + (err && err.message ? err.message : err);
         if(status) status.textContent = msg;
         alert(msg);
       }
@@ -2207,4 +2207,33 @@ document.addEventListener('click',function(e){
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindDocsSyncButton); else bindDocsSyncButton();
   setTimeout(bindDocsSyncButton, 300);
   setTimeout(bindDocsSyncButton, 1000);
+})();
+
+
+/* 2026-06-24 final docs/crew fixes: manifest paths, Crew Link full workspace. */
+(function(){
+  function topReset(){try{window.scrollTo({top:0,left:0,behavior:'auto'});}catch(e){window.scrollTo(0,0);}}
+  function forceCrewWorkspace(){
+    document.body.classList.add('crew-workspace-open','left-crew-expanded');
+    document.body.classList.remove('entity-editor-workspace-open','entity-editor-overlay-open');
+    document.querySelectorAll('.left-view').forEach(function(p){p.classList.remove('active-left-view');});
+    var crew=document.getElementById('crewLinkPanel');
+    if(crew) crew.classList.add('active-left-view');
+    if(window.state){ window.state.activeLeftTab='crew'; try{ if(typeof saveState==='function') saveState(); }catch(e){} }
+    topReset(); setTimeout(topReset,0);
+  }
+  function bindCrewFullWidth(){
+    ['openCrewLinkPanel'].forEach(function(id){
+      var b=document.getElementById(id); if(!b || b.dataset.crewFullWidthBound==='1') return;
+      b.dataset.crewFullWidthBound='1';
+      b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); forceCrewWorkspace(); return false; }, true);
+    });
+    document.querySelectorAll('[data-left-tab="crew"]').forEach(function(b){
+      if(b.dataset.crewFullWidthBound==='1') return;
+      b.dataset.crewFullWidthBound='1';
+      b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); forceCrewWorkspace(); return false; }, true);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindCrewFullWidth); else bindCrewFullWidth();
+  setTimeout(bindCrewFullWidth,250); setTimeout(bindCrewFullWidth,1000);
 })();

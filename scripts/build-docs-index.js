@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-  Rebuilds assets/docs/index.json from every PDF currently in assets/docs.
+  Rebuilds assets/index.json from every PDF currently in assets/docs.
   Run from the repository root after adding or removing PDFs:
 
     node scripts/build-docs-index.js
@@ -13,7 +13,7 @@ const path = require('path');
 
 const root = process.cwd();
 const docsDir = path.join(root, 'assets', 'docs');
-const outFile = path.join(docsDir, 'index.json');
+const outFile = path.join(root, 'assets', 'index.json');
 
 function walk(dir){
   if (!fs.existsSync(dir)) return [];

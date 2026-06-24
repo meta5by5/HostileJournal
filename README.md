@@ -109,14 +109,14 @@ Rich text editors now support PDF references through the existing `@` mention po
 
 ## Document Library `/assets/docs` sync
 
-The Document Library no longer uses the GitHub API or any token. **Sync Docs** reads from the `assets/docs` folder relative to the running `index.html`. Local PDF uploads still save only to this browser's IndexedDB for offline viewing.
+The Document Library no longer uses the GitHub API or any token. **Sync Docs** reads from the `assets/docs` folder using `assets/index.json` relative to the running `index.html`. Local PDF uploads still save only to this browser's IndexedDB for offline viewing.
 
 Because browsers cannot reliably enumerate a static directory on every host, the sync supports two relative-site methods:
 
-1. A static manifest file at `assets/docs/index.json`, `assets/docs/docs.json`, or `assets/docs/manifest.json`.
+1. A static manifest file at `assets/index.json`, `assets/docs/docs.json`, or `assets/docs/manifest.json`.
 2. A plain directory listing at `assets/docs/` when the local/dev web server provides one.
 
-Recommended `assets/docs/index.json` format:
+Recommended `assets/index.json` format:
 
 ```json
 {
@@ -148,19 +148,19 @@ Synced server documents appear in the Documents list even before a local PDF cop
 ## 2026-06-24 Docs sync refinement
 
 - Local/offline PDF documents now show a non-interactive black down-arrow indicator beside the edit button with the tooltip "File stored locally".
-- **Sync Docs** first tries to read a directory listing at `assets/docs/`, then merges anything found with `assets/docs/index.json`.
-- Static hosts such as GitHub Pages generally do not allow browser JavaScript to rewrite `assets/docs/index.json` or enumerate folders reliably. To keep the manifest updated, run this from the repository root after adding PDFs:
+- **Sync Docs** first tries to read a directory listing at `assets/docs/`, then merges anything found with `assets/index.json`.
+- Static hosts such as GitHub Pages generally do not allow browser JavaScript to rewrite `assets/index.json` or enumerate folders reliably. To keep the manifest updated, run this from the repository root after adding PDFs:
 
 ```bash
 node scripts/build-docs-index.js
 ```
 
-That script scans `assets/docs` and rewrites `assets/docs/index.json` with every PDF found there.
+That script scans `assets/docs` and rewrites `assets/index.json` with every PDF found there.
 
 
 ## Local testing note for Sync Docs
 
-Do not open `index.html` directly with a `file:///` URL when testing server-side docs. Modern browsers often block JavaScript `fetch()` calls to local files, so `assets/docs/index.json` may not be readable.
+Do not open `index.html` directly with a `file:///` URL when testing server-side docs. Modern browsers often block JavaScript `fetch()` calls to local files, so `assets/index.json` may not be readable.
 
 From the folder containing `index.html`, run one of these instead:
 
@@ -177,7 +177,7 @@ http://localhost:8000/
 Place the manifest at:
 
 ```text
-assets/docs/index.json
+assets/index.json
 ```
 
 Example:
@@ -203,7 +203,7 @@ If the manifest is inside `assets/docs`, bare file names are preferred. The app 
 
 ## Documents Sync Fix
 
-The **Sync Docs** button now reads `assets/docs/index.json` relative to the same folder as `index.html` and adds each listed PDF to the Documents library as a server document.
+The **Sync Docs** button now reads `assets/index.json` relative to the same folder as `index.html` and adds each listed PDF to the Documents library as a server document.
 
 Server documents open in the embedded PDF viewer using their published path, such as:
 
@@ -236,4 +236,13 @@ For local testing, run from the app folder with:
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///...` may prevent the browser from reading `assets/docs/index.json`.
+Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///...` may prevent the browser from reading `assets/index.json`.
+
+
+## 2026-06-24 Manifest Cleanup
+
+- The server document manifest now lives at `assets/index.json` instead of `assets/docs/index.json`.
+- PDF paths inside the manifest should still point to `assets/docs/<filename>.pdf`.
+- The build no longer includes `assets/docs/.gitkeep` or sample manifest files.
+- Imported migration JSON files are excluded from this build because they have already been imported.
+- The Documents library ignores non-PDF entries in the manifest.
