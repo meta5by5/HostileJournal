@@ -2624,3 +2624,244 @@ document.addEventListener('click',function(e){
     setTimeout(function(){ clearGuideStateAndEditors(); try{ if (typeof saveState === 'function') saveState(); }catch(e){} }, 50);
   }, true);
 })();
+
+
+/* 2026-06-24 baseline reapply: reliable Campaign JSON import + Lore entity group. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  function installLoreEntityType(){
+    try{
+      if(typeof ENTITY_TYPES !== 'undefined' && !ENTITY_TYPES.lore){
+        ENTITY_TYPES.lore = { label:'Lore', singular:'Lore', icon:'✦' };
+      }
+      if(typeof ENTITY_SUBTYPES !== 'undefined' && !ENTITY_SUBTYPES.lore){
+        ENTITY_SUBTYPES.lore = [
+          {key:'lore', label:'Lore', icon:'✦'},
+          {key:'history', label:'History', icon:'◷'},
+          {key:'rumor', label:'Rumor', icon:'❖'},
+          {key:'mystery', label:'Mystery', icon:'◇'},
+          {key:'culture', label:'Culture', icon:'◈'},
+          {key:'technology', label:'Technology', icon:'◫'}
+        ];
+      }
+      if(typeof ENTITY_TAGS !== 'undefined' && !ENTITY_TAGS.lore){
+        ENTITY_TAGS.lore = [];
+      }
+      if(typeof state !== 'undefined'){
+        if(!state.entityTagCatalog || typeof state.entityTagCatalog !== 'object') state.entityTagCatalog = {};
+        if(!Array.isArray(state.entityTagCatalog.lore)) state.entityTagCatalog.lore = [];
+      }
+    }catch(e){ console.warn('Lore entity type install failed', e); }
+  }
+
+  function normalizeOneEntity(ent, i){
+    ent = ent && typeof ent === 'object' ? {...ent} : {};
+    ent.id = String(ent.id || ('ent_import_' + Date.now().toString(36) + '_' + i + '_' + Math.random().toString(36).slice(2,6)));
+    ent.type = String(ent.type || ent.kind || ent.category || 'asset').toLowerCase();
+    if(ent.type === 'person' || ent.type === 'character' || ent.type === 'characters') ent.type = 'npc';
+    if(ent.type === 'locations') ent.type = 'location';
+    if(ent.type === 'factions') ent.type = 'faction';
+    if(ent.type === 'assets') ent.type = 'asset';
+    if(ent.type === 'lore' || ent.type === 'history' || ent.type === 'rumor' || ent.type === 'mystery') ent.type = 'lore';
+    if(typeof ENTITY_TYPES !== 'undefined' && !ENTITY_TYPES[ent.type]) ent.type = 'asset';
+    ent.name = ent.name || ent.title || ('Imported ' + (ent.type || 'entity'));
+    ent.tags = Array.isArray(ent.tags) ? ent.tags.filter(Boolean).map(String) : [];
+    ent.links = ent.links == null ? '' : ent.links;
+    ent.overview = ent.overview || ent.description || ent.notes || '';
+    ent.revealed = ent.revealed || '';
+    ent.relationshipDescription = ent.relationshipDescription || '';
+    ent.thumbnailImage = ent.thumbnailImage || '';
+    if(!Array.isArray(ent.relationships)){
+      if(ent.relationships && typeof ent.relationships === 'object'){
+        ent.relationships = Object.entries(ent.relationships).map(function(pair){ return {id:String(pair[0]), description:String(pair[1]||'')}; });
+      }else ent.relationships = [];
+    }
+    ent.relationships = ent.relationships.map(function(r){
+      if(typeof r === 'string') return {id:r, description:''};
+      return {id:String(r.id || r.targetId || r.entityId || ''), description:r.description || r.note || r.relationshipDescription || ''};
+    }).filter(function(r){ return r.id && r.id !== ent.id; });
+    ent.thumbnail = ent.thumbnailImage ? ('img:' + ent.thumbnailImage) : (ent.thumbnail || ((typeof ENTITY_TYPES !== 'undefined' && ENTITY_TYPES[ent.type]) ? ENTITY_TYPES[ent.type].icon : '◇'));
+    return ent;
+  }
+
+  function normalizeCampaignEntities(data){
+    var source = data && (data.entities || data.entityRecords || data.entityLibrary || data.entityState || data);
+    if(!source) return {items:[], activeId:null, history:[], openGroups:{}};
+    var items = [];
+    var activeId = source.activeId || null;
+    var history = Array.isArray(source.history) ? source.history.slice() : [];
+    var openGroups = source.openGroups && typeof source.openGroups === 'object' ? {...source.openGroups} : {};
+    if(Array.isArray(source)) items = source;
+    else if(Array.isArray(source.items)) items = source.items;
+    else if(Array.isArray(source.entities)) items = source.entities;
+    else if(source && typeof source === 'object') items = Object.values(source).filter(function(v){ return v && typeof v === 'object' && (v.name || v.title || v.type || v.kind); });
+    items = items.map(normalizeOneEntity);
+    activeId = activeId && items.some(function(e){ return e.id === activeId; }) ? activeId : (items[0] && items[0].id) || null;
+    history = history.filter(function(id){ return items.some(function(e){ return e.id === id; }); });
+    return {items:items, activeId:activeId, history:history, openGroups:openGroups};
+  }
+
+  function normalizeCampaignDocuments(data){
+    var docs = data && (data.documents || data.documentLibrary || data.pdfDocuments || data.docs);
+    if(!Array.isArray(docs)) return [];
+    return docs.map(function(d, i){
+      d = d && typeof d === 'object' ? {...d} : {name:String(d||'PDF Document')};
+      d.id = String(d.id || ('pdf_import_' + Date.now().toString(36) + '_' + i + '_' + Math.random().toString(36).slice(2,6)));
+      d.name = d.name || d.title || d.filename || 'PDF Document';
+      d.tags = Array.isArray(d.tags) ? d.tags.filter(Boolean).map(String) : [];
+      d.type = d.type || 'application/pdf';
+      d.size = Number(d.size || 0) || 0;
+      d.serverPath = d.serverPath || d.githubPath || d.path || '';
+      d.githubPath = d.githubPath || d.serverPath || '';
+      d.githubPagesUrl = d.githubPagesUrl || d.githubDownloadUrl || d.url || '';
+      d.githubDownloadUrl = d.githubDownloadUrl || d.githubPagesUrl || '';
+      d.hasLocalBlob = !!d.hasLocalBlob;
+      d.source = d.source || (d.serverPath || d.githubPath || d.githubPagesUrl ? 'server' : (d.hasLocalBlob ? 'local' : 'metadata'));
+      d.addedAt = d.addedAt || new Date().toISOString();
+      delete d.blob;
+      return d;
+    }).filter(function(d){
+      var p = String(d.serverPath || d.githubPath || d.githubPagesUrl || d.githubDownloadUrl || d.name || '').toLowerCase().split('?')[0].split('#')[0];
+      return p.endsWith('.pdf') || d.type === 'application/pdf';
+    });
+  }
+
+  function rebuildEntityTagCatalog(){
+    try{
+      if(!state.entityTagCatalog || typeof state.entityTagCatalog !== 'object') state.entityTagCatalog = {};
+      Object.keys(ENTITY_TYPES || {}).forEach(function(type){ if(!Array.isArray(state.entityTagCatalog[type])) state.entityTagCatalog[type] = []; });
+      var seen = {};
+      Object.keys(ENTITY_TYPES || {}).forEach(function(type){ seen[type] = new Set((state.entityTagCatalog[type]||[]).map(function(t){return t.key;})); });
+      ((state.entities && state.entities.items) || []).forEach(function(ent){
+        var type = ent.type || 'asset';
+        if(!state.entityTagCatalog[type]) state.entityTagCatalog[type] = [];
+        if(!seen[type]) seen[type] = new Set();
+        (Array.isArray(ent.tags) ? ent.tags : []).forEach(function(tag){
+          tag = String(tag || '').trim(); if(!tag || seen[type].has(tag)) return;
+          seen[type].add(tag);
+          state.entityTagCatalog[type].push({key:tag, label:tag.replace(/[-_]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}), icon:'◇'});
+        });
+      });
+    }catch(e){ console.warn('Could not rebuild entity tag catalog', e); }
+  }
+
+  function renderImportedCampaign(){
+    try{ if(typeof render === 'function') render(); }catch(e){}
+    try{ if(typeof renderJournal === 'function') renderJournal(); }catch(e){}
+    try{ if(typeof renderEntityTracker === 'function') renderEntityTracker(); }catch(e){}
+    try{ if(typeof renderEntityListPanelDirectory === 'function') renderEntityListPanelDirectory(); }catch(e){}
+    try{ if(typeof renderDocumentLibrary === 'function') renderDocumentLibrary(); }catch(e){}
+    var guideHtml = (typeof state !== 'undefined' && state.documentGuideHtml) || '';
+    ['guideEditor','centerGuideEditor'].forEach(function(id){
+      var ed = byId(id);
+      if(ed){ ed.innerHTML = guideHtml; ed.dataset.guideLoaded = '1'; }
+    });
+  }
+
+  function readFileAsText(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(String(reader.result || '')); };
+      reader.onerror = function(){ reject(reader.error || new Error('Could not read file')); };
+      reader.readAsText(file);
+    });
+  }
+
+  async function importCampaignJsonReliably(input){
+    var file = input && input.files && input.files[0];
+    if(!file) return;
+    try{
+      var imported = JSON.parse(await readFileAsText(file));
+      installLoreEntityType();
+      var next = {...DEFAULT_STATE, ...imported};
+      next.entities = normalizeCampaignEntities(imported);
+      next.documents = normalizeCampaignDocuments(imported);
+      next.journal = Array.isArray(imported.journal) ? imported.journal : (Array.isArray(imported.entries) ? imported.entries : []);
+      next.documentGuideHtml = imported.documentGuideHtml || imported.guideHtml || imported.guide || '';
+      if(!next.entityTagCatalog || typeof next.entityTagCatalog !== 'object') next.entityTagCatalog = {};
+      state = next;
+      rebuildEntityTagCatalog();
+      try{ if(typeof ensureReciprocalEntityRelationships === 'function') ensureReciprocalEntityRelationships(); }catch(e){}
+      try{ if(typeof saveState === 'function') saveState(); }catch(e){}
+      renderImportedCampaign();
+      var counts = [
+        (state.entities && state.entities.items ? state.entities.items.length : 0) + ' entities',
+        (Array.isArray(state.journal) ? state.journal.length : 0) + ' journal entries',
+        (state.documentGuideHtml ? 'Guide imported' : 'Guide blank'),
+        (Array.isArray(state.documents) ? state.documents.length : 0) + ' document records'
+      ].join(', ');
+      try{ if(typeof setStatus === 'function') setStatus('Imported campaign JSON: ' + counts); }catch(e){}
+      alert('Imported campaign JSON: ' + counts + '.\n\nNote: local PDF file blobs are browser-only; imported document records will open from server paths when available or prompt to attach a local copy.');
+    }catch(err){
+      alert('Could not import Campaign JSON: ' + (err && err.message ? err.message : err));
+      console.error(err);
+    }finally{
+      try{ input.value = ''; }catch(e){}
+    }
+  }
+
+  function bindReliableCampaignImport(){
+    var input = byId('importJson');
+    if(!input || input.dataset.reliableCampaignImport === '1') return;
+    input.dataset.reliableCampaignImport = '1';
+    input.addEventListener('change', function(ev){
+      ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      importCampaignJsonReliably(input);
+      return false;
+    }, true);
+  }
+
+  function patchEntityHelpersForLore(){
+    installLoreEntityType();
+    try{
+      pruneUnusedEntityTags = function(){
+        var catalog = entityTagCatalog();
+        var used = {};
+        Object.keys(ENTITY_TYPES || {}).forEach(function(type){ used[type] = new Set(); });
+        ((state.entities && state.entities.items) || []).forEach(function(ent){
+          var type = ent.type || 'asset';
+          if(!used[type]) used[type] = new Set();
+          (ent.tags || []).filter(Boolean).forEach(function(tag){ used[type].add(tag); });
+        });
+        Object.keys(catalog).forEach(function(type){ catalog[type] = (catalog[type] || []).filter(function(tag){ return used[type] && used[type].has(tag.key); }); });
+      };
+    }catch(e){}
+    try{
+      if(typeof addEntity === 'function' && !addEntity.__lorePatch){
+        var originalAddEntity = addEntity;
+        addEntity = function(type, name){
+          installLoreEntityType();
+          type = String(type || 'npc').toLowerCase();
+          if(type === 'history' || type === 'rumor' || type === 'mystery') type = 'lore';
+          var es = ensureEntityState();
+          var ent = defaultEntity(type);
+          if(name) ent.name = String(name);
+          es.items.push(ent);
+          setActiveEntity(ent.id, false);
+          saveState();
+          renderEntityTracker();
+        };
+        addEntity.__lorePatch = true;
+        window.addEntity = addEntity;
+      }
+    }catch(e){}
+    try{
+      sortEntityState = sortEntityState || null;
+    }catch(e){}
+  }
+
+  function refreshEntityViews(){
+    installLoreEntityType();
+    rebuildEntityTagCatalog();
+    try{ if(typeof ensureEntityState === 'function') ensureEntityState(); }catch(e){}
+    try{ if(typeof renderEntityTracker === 'function') renderEntityTracker(); }catch(e){}
+    try{ if(typeof renderEntityListPanelDirectory === 'function') renderEntityListPanelDirectory(); }catch(e){}
+  }
+
+  patchEntityHelpersForLore();
+  bindReliableCampaignImport();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ patchEntityHelpersForLore(); bindReliableCampaignImport(); refreshEntityViews(); });
+  setTimeout(function(){ patchEntityHelpersForLore(); bindReliableCampaignImport(); refreshEntityViews(); }, 250);
+  setTimeout(function(){ patchEntityHelpersForLore(); bindReliableCampaignImport(); refreshEntityViews(); }, 1000);
+})();

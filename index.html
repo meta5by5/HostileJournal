@@ -368,6 +368,7 @@
     if (text.includes('location')) return 'location';
     if (text.includes('faction') || text.includes('org')) return 'faction';
     if (text.includes('asset') || text.includes('vehicle') || text.includes('cargo')) return 'asset';
+    if (text.includes('lore') || text.includes('history') || text.includes('rumor') || text.includes('mystery')) return 'lore';
 
     const row = document.querySelector('.entity-directory [data-entity-type], .entity-library [data-entity-type]');
     if (row) return (row.getAttribute('data-entity-type') || 'npc').toLowerCase();
@@ -385,6 +386,7 @@
     if (t === 'location') return 'Location';
     if (t === 'faction') return 'Faction';
     if (t === 'asset') return 'Asset';
+    if (t === 'lore' || t === 'history' || t === 'rumor' || t === 'mystery') return 'Lore';
     return 'Entity';
   }
 

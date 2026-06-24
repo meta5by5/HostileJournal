@@ -275,3 +275,9 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 ## 2026-06-24 Guide reset update
 
 - Starting a new campaign now clears `documentGuideHtml` and both Guide editors so the Guide does not carry over into the new campaign.
+
+## 2026-06-24 Baseline reapply patch
+
+- Fixed **Import Campaign JSON** to reliably import entities, journal entries, Guide HTML, and document library metadata from a campaign JSON file.
+- Added **Lore** as a native Entity Library group with Lore/History/Rumor/Mystery/Culture/Technology subtype options.
+- Local PDF blobs remain browser-local and are not embedded in Campaign JSON; imported document records open from server paths when available or prompt for a local copy.
