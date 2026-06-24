@@ -94,3 +94,7 @@ Rich text editors now support PDF references through the existing `@` mention po
 ## 2026-06-24 Document display-name editing
 - Document rows now include a pencil button to edit the displayed document name.
 - Renaming changes the name shown in the document list, PDF viewer title, search results, and newly inserted @ PDF links without changing the stored PDF file/blob.
+
+## Scroll position update
+- Center/right body tab buttons now keep the page pinned to the top.
+- Scene Elements, Journal, Guide, Oracles, and Documents tab switching no longer scrolls down to a rich text editor or active card.
