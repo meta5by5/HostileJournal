@@ -259,7 +259,7 @@
       <p class="small">Search entities, drag them into editors to create entity links, or click an entity to open the editor over the workspace.</p>
       <div class="entity-library-filter-row entity-list-filter-row">
         <label class="entity-filter-label">Filter Entities<input id="entityListFilter" type="search" placeholder="Search entities and tags..."></label>
-        <button id="entityListAddEntity" class="secondary compact-button entity-library-add-button" type="button" title="Add New Entity"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""> Add New Entity</button>
+        <button id="entityListAddEntity" class="secondary compact-button entity-library-add-button icon-only-button" type="button" title="Add New Entity" aria-label="Add New Entity"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
       </div>
       <div id="entityListDirectory" class="entity-directory entity-list-directory"></div>
     </section>
@@ -394,12 +394,9 @@
   }
 
   function addEntityOfVisibleType(){
-    const type = inferVisibleEntityType();
-    const label = labelForType(type);
-    const name = prompt('New ' + label + ' name:', 'New ' + label);
-    if (!name) return;
+    const type = 'npc';
 
-    // Prefer native app functions when available.
+    // Prefer native app functions when available. New generic entities always start as blank NPCs.
     const candidates = [
       'addEntity','createEntity','entityAdd','createNewEntity','addNewEntity',
       'openEntityEditorForNew','newEntity'
@@ -407,12 +404,14 @@
     for (const fnName of candidates) {
       if (typeof window[fnName] === 'function') {
         try {
-          window[fnName](type, name);
+          window[fnName](type);
           setTimeout(function(){
             if (typeof window.renderEntityDirectory === 'function') window.renderEntityDirectory();
             if (typeof window.renderEntityLibrary === 'function') window.renderEntityLibrary();
             if (typeof window.saveState === 'function') window.saveState();
-          }, 0);
+            const nameField = document.getElementById('entityName');
+            if (nameField) { nameField.focus(); nameField.select(); }
+          }, 50);
           return;
         } catch(e) {}
       }
@@ -423,7 +422,7 @@
     const rec = {
       id: id,
       type: type,
-      name: name,
+      name: '',
       tags: [],
       links: [],
       overview: '',
@@ -495,8 +494,10 @@
       btn.id = 'entityLibraryAddEntity';
       btn.type = 'button';
       btn.className = 'secondary compact-button entity-library-add-button';
-      btn.title = 'Add entity of the displayed type';
-      btn.innerHTML = '<img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""> Add New Entity';
+      btn.title = 'Add New Entity';
+      btn.setAttribute('aria-label','Add New Entity');
+      btn.classList.add('icon-only-button');
+      btn.innerHTML = '<img class="button-inline-icon" src="./img/add-journal-icon.png" alt="">';
       row.appendChild(btn);
       btn.addEventListener('click', addEntityOfVisibleType);
     } else if (btn.parentElement !== row) {
@@ -526,5 +527,28 @@
 })();
 </script>
 
+
+<style id="doc-title-entity-add-compact-patch">
+  .document-card-title,
+  .document-card-title-link {
+    font-weight: 400 !important;
+  }
+  #entityListAddEntity.entity-library-add-button,
+  #entityLibraryAddEntity.entity-library-add-button,
+  #entityAddFromLibrary.entity-library-add-button {
+    width: 2.05rem !important;
+    min-width: 2.05rem !important;
+    padding-left: .35rem !important;
+    padding-right: .35rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #entityListAddEntity .button-inline-icon,
+  #entityLibraryAddEntity .button-inline-icon,
+  #entityAddFromLibrary .button-inline-icon {
+    margin: 0 !important;
+  }
+</style>
 </body>
 </html>
