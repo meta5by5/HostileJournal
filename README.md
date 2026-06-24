@@ -263,3 +263,10 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 - Each document remembers the last page opened or entered in the viewer page box.
 - When the app reloads after PDFs were left open, it asks whether to reopen those documents to their recent pages.
 - Browser PDF viewers do not expose scroll/current-page changes to JavaScript reliably, so the app remembers pages opened by links or entered in the viewer page field.
+
+
+## Document list display update
+
+- Server URL/path text is hidden in the Documents tab.
+- The local-file indicator is a non-interactive icon with tooltip: `File stored locally`.
+- The local-file indicator now appears to the left of the edit/tag/delete buttons.

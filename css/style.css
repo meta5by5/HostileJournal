@@ -2017,3 +2017,29 @@ body.crew-workspace-open #oraclePanel{
 .document-viewer-page-controls input{width:4.25rem;min-height:1.55rem;padding:.18rem .32rem;font-size:.78rem;border-radius:7px}
 .document-viewer-page-controls button{min-height:1.55rem;padding:.18rem .42rem!important;font-size:.74rem!important}
 @media(max-width:640px){.document-viewer-tab{max-width:10rem}.document-viewer-tab-title{max-width:6rem}.document-viewer-actions{flex-wrap:wrap}.document-viewer-page-controls{order:-1;width:100%;justify-content:flex-end}}
+
+
+/* 2026-06-24 local document icon: display-only marker, not a button. */
+.document-card-github{display:none!important;}
+.document-local-indicator{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:1.35rem!important;
+  min-width:1.35rem!important;
+  height:1.35rem!important;
+  padding:0!important;
+  margin-right:.05rem!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  cursor:default!important;
+  pointer-events:auto!important;
+}
+.document-local-indicator img{
+  width:1.15rem!important;
+  height:1.15rem!important;
+  display:block!important;
+  object-fit:contain!important;
+  filter:none!important;
+}
