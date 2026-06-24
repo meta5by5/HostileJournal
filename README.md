@@ -270,3 +270,8 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 - Server URL/path text is hidden in the Documents tab.
 - The local-file indicator is a non-interactive icon with tooltip: `File stored locally`.
 - The local-file indicator now appears to the left of the edit/tag/delete buttons.
+
+
+## 2026-06-24 Guide reset update
+
+- Starting a new campaign now clears `documentGuideHtml` and both Guide editors so the Guide does not carry over into the new campaign.

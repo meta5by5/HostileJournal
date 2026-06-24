@@ -2588,3 +2588,39 @@ document.addEventListener('click',function(e){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', importGuideAfterCampaign); else importGuideAfterCampaign();
   setTimeout(function(){ sortEntityState(); try{ if(typeof renderEntityListPanelDirectory==='function') renderEntityListPanelDirectory(); }catch(e){} }, 600);
 })();
+
+/* 2026-06-24: Clear Guide when starting/selecting a new campaign. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function clearGuideStateAndEditors(){
+    try{
+      if (typeof state !== 'undefined') state.documentGuideHtml = '';
+      if (window.state) window.state.documentGuideHtml = '';
+      ['guideEditor','centerGuideEditor'].forEach(function(id){
+        var ed = byId(id);
+        if (ed){ ed.innerHTML = ''; ed.dataset.guideLoaded = '1'; }
+      });
+    }catch(e){}
+  }
+  try{
+    if (typeof window.newCampaign !== 'function' && typeof newCampaign === 'function') window.newCampaign = newCampaign;
+  }catch(e){}
+  try{
+    if (typeof newCampaign === 'function' && !newCampaign.__clearGuidePatch){
+      var originalNewCampaign = newCampaign;
+      newCampaign = function(){
+        var result = originalNewCampaign.apply(this, arguments);
+        clearGuideStateAndEditors();
+        try{ if (typeof saveState === 'function') saveState(); }catch(e){}
+        return result;
+      };
+      newCampaign.__clearGuidePatch = true;
+      window.newCampaign = newCampaign;
+    }
+  }catch(e){}
+  document.addEventListener('click', function(ev){
+    var btn = ev.target && ev.target.closest && ev.target.closest('#newCampaign');
+    if (!btn) return;
+    setTimeout(function(){ clearGuideStateAndEditors(); try{ if (typeof saveState === 'function') saveState(); }catch(e){} }, 50);
+  }, true);
+})();
