@@ -98,3 +98,8 @@ Rich text editors now support PDF references through the existing `@` mention po
 ## Scroll position update
 - Center/right body tab buttons now keep the page pinned to the top.
 - Scene Elements, Journal, Guide, Oracles, and Documents tab switching no longer scrolls down to a rich text editor or active card.
+
+## Scroll/focus fix update
+- Body section tab buttons now blur any active rich text editor before switching views.
+- Journal, Guide, and Scene Elements center buttons are hard-bound in capture phase to prevent duplicate default handlers from scrolling the page.
+- Center Guide button behavior restored while preserving the Guide/Oracles auto-switch behavior.

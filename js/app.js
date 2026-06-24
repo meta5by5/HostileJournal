@@ -1559,6 +1559,7 @@ document.addEventListener('click',function(e){
   window.showHostileRightTab=showRightTabPublic;
   var originalCenter=window.showCenterTab || (typeof showCenterTab==='function' ? showCenterTab : null);
   window.showCenterTab=function(tab, save){
+    try { if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e) {}
     tab = tab==='guide' ? 'guide' : (tab==='journal' ? 'journal' : 'output');
     if(typeof state!=='undefined') state.activeCenterTab=tab;
     if(window.state) window.state.activeCenterTab=tab;
@@ -1576,6 +1577,8 @@ document.addEventListener('click',function(e){
     if(tab==='guide') renderAllGuideEditors(false);
     var target = tab==='guide' ? 'centerGuideView' : (tab==='journal' ? 'journalView' : 'currentOutputView');
     if(typeof scrollActiveCardToTop==='function') scrollActiveCardToTop(target);
+    try { if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e) {}
+    if(typeof forcePageTop==='function') { forcePageTop(); setTimeout(forcePageTop, 25); }
     if(save!==false && typeof saveState==='function') saveState();
   };
   try { showCenterTab = window.showCenterTab; } catch(e) {}
@@ -1593,14 +1596,27 @@ document.addEventListener('click',function(e){
     document.body.classList.add('side-panel-open');
     showRightTabPublic('guide');
   }
+  function forcePageTop(){
+    try {
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
+      var layout=document.querySelector('.layout'); if(layout) layout.scrollTop=0;
+    } catch(e) { try { window.scrollTo(0,0); } catch(_) {} }
+  }
   function bindGuideNav(){
     var cbtn=byId('showCenterGuideTab');
     if(cbtn && !cbtn.dataset.guideNavBound){
       cbtn.dataset.guideNavBound='1';
       cbtn.addEventListener('click', function(ev){
         ev.preventDefault();
+        if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+        forcePageTop();
         if(isRightGuideActive()) showRightTabPublic('oracles');
         window.showCenterTab('guide', true);
+        forcePageTop();
+        setTimeout(forcePageTop, 25);
       }, true);
     }
     var rbtn=byId('showGuideLibraryTab');
@@ -1633,35 +1649,44 @@ document.addEventListener('click',function(e){
 })();
 
 
-// Keep body-section tab/action buttons from stealing scroll focus from the page.
+// Keep body-section tab/action buttons from stealing scroll focus from the page and stop focused editors from auto-scrolling into view.
 (function(){
   function resetPageTop(){
     try {
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
       window.scrollTo({top:0,left:0,behavior:'auto'});
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      var layout=document.querySelector('.layout'); if(layout) layout.scrollTop=0;
+      document.querySelectorAll('.panel,.center-view,.left-view,.oracle-panel,.output').forEach(function(el){ try{ el.scrollTop=0; }catch(e){} });
     } catch(e) { try { window.scrollTo(0,0); } catch(_) {} }
   }
+  function hardBind(id, handler){
+    var btn=document.getElementById(id);
+    if(!btn || btn.dataset.hardNoScrollBound) return;
+    btn.dataset.hardNoScrollBound='1';
+    btn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      resetPageTop();
+      handler(ev);
+      resetPageTop();
+      setTimeout(resetPageTop, 0);
+      setTimeout(resetPageTop, 60);
+    }, true);
+  }
   function bindNoScrollBodyButtons(){
-    var selectors = [
-      '#showJournalTab', '#showCenterGuideTab', '#showOutputTab',
-      '#showOracleLibraryTab', '#showGuideLibraryTab', '#showDocumentLibraryTab',
-      '.panel-tabs button', '.center-tabs button', '.tab-button'
-    ];
-    document.querySelectorAll(selectors.join(',')).forEach(function(btn){
-      if(btn.dataset.noScrollTopBound) return;
-      btn.dataset.noScrollTopBound='1';
-      btn.addEventListener('click', function(){
-        setTimeout(resetPageTop, 0);
-        setTimeout(resetPageTop, 40);
-      }, true);
+    hardBind('showJournalTab', function(){ if(typeof showLeftTab==='function') showLeftTab('scene'); if(window.showCenterTab) window.showCenterTab('journal', true); });
+    hardBind('showOutputTab', function(){ if(typeof showLeftTab==='function') showLeftTab('scene'); if(window.showCenterTab) window.showCenterTab('output', true); });
+    hardBind('showCenterGuideTab', function(){
+      if(typeof isRightGuideActive==='function' && isRightGuideActive() && typeof showRightTabPublic==='function') showRightTabPublic('oracles');
+      if(window.showCenterTab) window.showCenterTab('guide', true);
+    });
+    ['showOracleLibraryTab','showGuideLibraryTab','showDocumentLibraryTab'].forEach(function(id){
+      var btn=document.getElementById(id); if(!btn || btn.dataset.softNoScrollBound) return; btn.dataset.softNoScrollBound='1';
+      btn.addEventListener('click', function(){ setTimeout(resetPageTop,0); setTimeout(resetPageTop,60); }, true);
     });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindNoScrollBodyButtons); else bindNoScrollBodyButtons();
-  document.addEventListener('click', function(ev){
-    if(ev.target && ev.target.closest && ev.target.closest('#outputPanel .tab-button, #oraclePanel .tab-button, .panel-tabs button, .center-tabs button')) {
-      setTimeout(resetPageTop, 0);
-      setTimeout(resetPageTop, 40);
-    }
-  }, true);
+  setTimeout(bindNoScrollBodyButtons, 500);
 })();
