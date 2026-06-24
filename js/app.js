@@ -1690,3 +1690,57 @@ document.addEventListener('click',function(e){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindNoScrollBodyButtons); else bindNoScrollBodyButtons();
   setTimeout(bindNoScrollBodyButtons, 500);
 })();
+
+// Fix main Oracles nav so it opens the right Oracles panel instead of leaving/activating Entity views.
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function resetPageTop(){
+    try {
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      var layout=document.querySelector('.layout'); if(layout) layout.scrollTop=0;
+      document.querySelectorAll('.panel,.center-view,.left-view,.oracle-panel,.output').forEach(function(el){ try{ el.scrollTop=0; }catch(e){} });
+    } catch(e) { try { window.scrollTo(0,0); } catch(_) {} }
+  }
+  function showOraclesRightTab(){
+    if(window.showHostileRightTab){
+      window.showHostileRightTab('oracles');
+      return;
+    }
+    var oracle=byId('oracleLibraryTab'), docs=byId('documentLibraryTab'), guide=byId('guideLibraryTab');
+    var oracleBtn=byId('showOracleLibraryTab'), docsBtn=byId('showDocumentLibraryTab'), guideBtn=byId('showGuideLibraryTab');
+    if(oracle){ oracle.hidden=false; oracle.classList.add('active-oracle-tab'); }
+    if(docs){ docs.hidden=true; docs.classList.remove('active-oracle-tab'); }
+    if(guide){ guide.hidden=true; guide.classList.remove('active-oracle-tab'); }
+    if(oracleBtn) oracleBtn.classList.add('active');
+    if(docsBtn) docsBtn.classList.remove('active');
+    if(guideBtn) guideBtn.classList.remove('active');
+  }
+  function openOraclePanelFromMain(ev){
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); }
+    try { if(typeof closeEntityEditorOverlay === 'function') closeEntityEditorOverlay(); } catch(e) {}
+    document.body.classList.remove('entity-editor-workspace-open','entity-editor-overlay-open','crew-workspace-open','left-crew-expanded');
+    if(window.showLeftTab) window.showLeftTab('scene', false);
+    var panel=byId('oraclePanel');
+    if(panel){
+      document.querySelectorAll('.side-panel').forEach(function(p){ p.classList.toggle('is-open', p===panel); });
+      panel.scrollTop=0;
+    }
+    var backdrop=byId('panelBackdrop'); if(backdrop) backdrop.hidden=false;
+    document.body.classList.add('side-panel-open');
+    showOraclesRightTab();
+    resetPageTop();
+    setTimeout(resetPageTop, 0);
+    setTimeout(resetPageTop, 60);
+  }
+  function bindOracleMainNavFix(){
+    var btn=byId('openOraclePanel');
+    if(!btn || btn.dataset.oracleMainNavFix) return;
+    btn.dataset.oracleMainNavFix='1';
+    btn.addEventListener('click', openOraclePanelFromMain, true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindOracleMainNavFix); else bindOracleMainNavFix();
+  setTimeout(bindOracleMainNavFix, 500);
+})();

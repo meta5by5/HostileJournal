@@ -103,3 +103,6 @@ Rich text editors now support PDF references through the existing `@` mention po
 - Body section tab buttons now blur any active rich text editor before switching views.
 - Journal, Guide, and Scene Elements center buttons are hard-bound in capture phase to prevent duplicate default handlers from scrolling the page.
 - Center Guide button behavior restored while preserving the Guide/Oracles auto-switch behavior.
+
+## Latest fix
+- Fixed the main navigation **Oracles** button so it opens the right-side Oracles tab directly and no longer leaves/activates the Entities card.
