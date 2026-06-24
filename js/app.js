@@ -397,18 +397,66 @@ showLeftTab = function(tab,save=true){
 };
 
 
-function entityLinkMarkup(ent){return `<a href="#" class="entity-inline-link" data-entity-id="${ent.id}">@${escapeHtml(entityDisplayName(ent))}</a>`}
-function insertEntityReference(target,ent){
-  if(!target||!ent)return;
+
+function getMentionTriggerBounds(target){
+  const re=/@([\w\s'\-\.]{0,60})$/;
+  if(!target)return null;
   if(target.isContentEditable){
-    target.focus(); document.execCommand('insertHTML',false,entityLinkMarkup(ent)+' ');
-  }else if('selectionStart' in target){
-    const start=target.selectionStart||0,end=target.selectionEnd||0,val=target.value||'';
-    const insert='@'+entityDisplayName(ent)+' ';
+    const sel=window.getSelection&&window.getSelection();
+    if(!sel||!sel.rangeCount)return null;
+    const range=sel.getRangeAt(0);
+    const probe=range.cloneRange();
+    probe.selectNodeContents(target);
+    probe.setEnd(range.endContainer, range.endOffset);
+    const before=probe.toString();
+    const m=before.match(re);
+    if(!m)return null;
+    return { length:m[0].length };
+  }
+  if('selectionStart' in target){
+    const pos=target.selectionStart||0;
+    const before=String(target.value||'').slice(0,pos);
+    const m=before.match(re);
+    if(!m)return null;
+    return { start:pos-m[0].length, end:pos, length:m[0].length };
+  }
+  return null;
+}
+function replaceMentionTriggerWithHtml(target,html){
+  if(target&&target.isContentEditable){
+    target.focus();
+    const bounds=getMentionTriggerBounds(target);
+    const sel=window.getSelection&&window.getSelection();
+    if(bounds&&sel&&sel.rangeCount){
+      const range=sel.getRangeAt(0);
+      range.setStart(range.endContainer, Math.max(0, range.endOffset-bounds.length));
+      range.deleteContents();
+      sel.removeAllRanges(); sel.addRange(range);
+    }
+    document.execCommand('insertHTML',false,html+' ');
+    return true;
+  }
+  return false;
+}
+function replaceMentionTriggerWithText(target,text){
+  if(target&&'selectionStart' in target){
+    const bounds=getMentionTriggerBounds(target);
+    const start=bounds?bounds.start:(target.selectionStart||0);
+    const end=bounds?bounds.end:(target.selectionEnd||0);
+    const val=target.value||'';
+    const insert=text+' ';
     target.value=val.slice(0,start)+insert+val.slice(end);
     target.dispatchEvent(new Event('input',{bubbles:true}));
     target.focus(); target.setSelectionRange(start+insert.length,start+insert.length);
+    return true;
   }
+  return false;
+}
+function entityLinkMarkup(ent){return `<a href="#" class="entity-inline-link" data-entity-id="${ent.id}">@${escapeHtml(entityDisplayName(ent))}</a>`}
+function insertEntityReference(target,ent){
+  if(!target||!ent)return;
+  if(replaceMentionTriggerWithHtml(target, entityLinkMarkup(ent))) return;
+  if(replaceMentionTriggerWithText(target, '@'+entityDisplayName(ent))) return;
 }
 function closeEntityMentionPopup(){const old=document.getElementById('entityMentionPopup'); if(old)old.remove();}
 function showEntityMentionPopup(target,query=''){
@@ -995,4 +1043,449 @@ initEntityTracker();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindJsonArchiveButtons);else bindJsonArchiveButtons();
   setTimeout(bindJsonArchiveButtons,500);
+})();
+
+;(() => {
+  const DB_NAME = 'HostileDocumentLibraryDB';
+  const STORE = 'pdfs';
+  let currentPdfUrl = null;
+  let currentPdfRecord = null;
+  const byId = id => document.getElementById(id);
+  const escDoc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const fmtBytes = n => {
+    n = Number(n || 0);
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+  function normalizeDocTag(tag){
+    return String(tag||'').trim().replace(/^#+/,'').replace(/\s+/g,' ').toLowerCase();
+  }
+  function parseDocTags(text){
+    return [...new Set(String(text||'').split(/[#,]/).map(normalizeDocTag).filter(Boolean))];
+  }
+  function displayDocTags(tags){
+    return (Array.isArray(tags)?tags:[]).filter(Boolean).map(t=>'#'+t).join(' ');
+  }
+  function makeDocFingerprint(name,size){
+    return String(name||'').trim().toLowerCase()+'::'+String(size||0);
+  }
+  function selectedDocumentTags(){
+    return [...document.querySelectorAll('#documentTagFilterChips .document-tag-chip.active')].map(b=>b.dataset.tag).filter(Boolean);
+  }
+  function allDocumentTags(){
+    return [...new Set(ensureDocState().flatMap(d => Array.isArray(d.tags) ? d.tags : []))].sort((a,b)=>a.localeCompare(b));
+  }
+  function refreshDocumentTagDatalist(){
+    const dl = byId('documentTagDatalist');
+    if (!dl) return;
+    dl.innerHTML = '';
+    allDocumentTags().forEach(tag => { const opt=document.createElement('option'); opt.value=tag; dl.appendChild(opt); });
+  }
+  function appendDocTag(doc, tag){
+    tag = normalizeDocTag(tag);
+    if (!tag) return false;
+    if (!Array.isArray(doc.tags)) doc.tags = [];
+    if (!doc.tags.includes(tag)) doc.tags.push(tag);
+    doc.tags.sort((a,b)=>a.localeCompare(b));
+    return true;
+  }
+  function removeDocTag(doc, tag){
+    tag = normalizeDocTag(tag);
+    if (!doc || !tag || !Array.isArray(doc.tags)) return false;
+    const before = doc.tags.length;
+    doc.tags = doc.tags.filter(t => normalizeDocTag(t) !== tag);
+    return doc.tags.length !== before;
+  }
+  function ensureDocState(){
+    if (!Array.isArray(state.documents)) state.documents = [];
+    state.documents.forEach(d=>{ if(!Array.isArray(d.tags)) d.tags = []; if(!d.fingerprint && d.name && d.size) d.fingerprint = makeDocFingerprint(d.name,d.size); });
+    return state.documents;
+  }
+  function openDb(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function txStore(mode='readonly'){
+    const db = await openDb();
+    return db.transaction(STORE, mode).objectStore(STORE);
+  }
+  async function putPdf(record){
+    const store = await txStore('readwrite');
+    return new Promise((resolve, reject) => {
+      const req = store.put(record);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function getPdf(id){
+    const store = await txStore('readonly');
+    return new Promise((resolve, reject) => {
+      const req = store.get(id);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function deletePdf(id){
+    const store = await txStore('readwrite');
+    return new Promise((resolve, reject) => {
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function saveDocState(){
+    try { if (typeof saveState === 'function') saveState(); } catch(e) { console.warn(e); }
+  }
+  function showRightTab(name){
+    const oracle = byId('oracleLibraryTab');
+    const docs = byId('documentLibraryTab');
+    const guide = byId('guideLibraryTab');
+    const oracleBtn = byId('showOracleLibraryTab');
+    const docsBtn = byId('showDocumentLibraryTab');
+    const guideBtn = byId('showGuideLibraryTab');
+    const onDocs = name === 'documents';
+    const onGuide = name === 'guide';
+    if (oracle){ oracle.hidden = onDocs || onGuide; oracle.classList.toggle('active-oracle-tab', !onDocs && !onGuide); }
+    if (docs){ docs.hidden = !onDocs; docs.classList.toggle('active-oracle-tab', onDocs); }
+    if (guide){ guide.hidden = !onGuide; guide.classList.toggle('active-oracle-tab', onGuide); }
+    if (oracleBtn) oracleBtn.classList.toggle('active', !onDocs && !onGuide);
+    if (docsBtn) docsBtn.classList.toggle('active', onDocs);
+    if (guideBtn) guideBtn.classList.toggle('active', onGuide);
+    if (onDocs) renderDocumentLibrary();
+    if (onGuide) renderGuideEditor();
+  }
+  function renderDocumentLibrary(){
+    const list = byId('documentLibraryList');
+    if (!list) return;
+    const docsAll = ensureDocState().slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''), undefined, {sensitivity:'base', numeric:true}));
+    const search = String(byId('documentSearch')?.value || '').trim().toLowerCase();
+    const activeTags = selectedDocumentTags();
+    const allTags = allDocumentTags();
+    refreshDocumentTagDatalist();
+    const chipWrap = byId('documentTagFilterChips');
+    if (chipWrap){
+      chipWrap.innerHTML = '';
+      allTags.forEach(tag => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'document-tag-chip' + (activeTags.includes(tag) ? ' active' : '');
+        chip.dataset.tag = tag;
+        chip.textContent = '#'+tag;
+        chipWrap.appendChild(chip);
+      });
+    }
+    const docs = docsAll.filter(doc => {
+      const tags = Array.isArray(doc.tags) ? doc.tags : [];
+      const hay = [doc.name, ...(tags||[])].join(' ').toLowerCase();
+      const searchOk = !search || hay.includes(search);
+      const tagsOk = !activeTags.length || activeTags.every(t => tags.includes(t));
+      return searchOk && tagsOk;
+    });
+    list.innerHTML = '';
+    if (!docs.length){
+      const empty = document.createElement('div');
+      empty.className = 'document-library-empty';
+      empty.textContent = docsAll.length ? 'No PDFs match the current search or tag filters.' : 'No PDFs uploaded yet.';
+      list.appendChild(empty);
+      return;
+    }
+    docs.forEach(doc => {
+      const card = document.createElement('article');
+      card.className = 'document-card';
+      const docTags = Array.isArray(doc.tags) ? doc.tags.slice().sort((a,b)=>a.localeCompare(b)) : [];
+      const tagChips = docTags.length ? docTags.map(t => `<span class="document-card-tag-chip">#${escDoc(t)}</span>`).join('') : '<span class="document-card-tags-empty">No tags</span>';
+      const editableTagChips = docTags.length ? docTags.map(t => `<button type="button" class="document-card-tag-chip removable" data-doc-remove-tag="${escDoc(doc.id)}" data-tag="${escDoc(t)}" title="Remove #${escDoc(t)}">#${escDoc(t)} <span aria-hidden="true">×</span></button>`).join('') : '<span class="document-card-tags-empty">No tags yet.</span>';
+      const tagOptions = allTags.filter(t => !docTags.includes(t)).map(t=>`<option value="${escDoc(t)}">#${escDoc(t)}</option>`).join('');
+      card.draggable = true;
+      card.dataset.docDrag = doc.id;
+      card.title = 'Drag into a text editor to create a PDF page link';
+      card.innerHTML = `<div class="document-card-main"><a href="#" class="document-card-title document-card-title-link" data-doc-open="${escDoc(doc.id)}" data-doc-drag="${escDoc(doc.id)}" draggable="true" title="Open PDF, or drag into an editor to link it">${escDoc(doc.name)}</a><div class="document-card-tags">${tagChips}</div><div class="document-card-tag-editor" data-doc-tag-editor="${escDoc(doc.id)}" hidden><div class="document-card-edit-tags">${editableTagChips}</div><div class="document-card-tag-row"><input class="document-card-tag-input" type="text" list="documentTagDatalist" data-doc-new-tag="${escDoc(doc.id)}" placeholder="Add new tag" aria-label="Add new document tag"><select class="document-card-tag-select" data-doc-add-tag="${escDoc(doc.id)}" aria-label="Add existing tag"><option value="">+ existing</option>${tagOptions}</select></div></div></div><div class="document-card-actions"><button class="secondary document-tag-toggle" type="button" data-doc-toggle-tags="${escDoc(doc.id)}" title="Modify tags" aria-label="Modify tags">⚑</button><button class="secondary" type="button" data-doc-delete="${escDoc(doc.id)}" title="Remove PDF" aria-label="Remove PDF">🗑</button></div>`;
+      list.appendChild(card);
+    });
+  }
+  async function handlePdfUpload(evt){
+    const files = [...(evt.target.files || [])].filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+    if (!files.length) return;
+    const docs = ensureDocState();
+    const uploadTags = parseDocTags(byId('documentDefaultTags')?.value || '');
+    let added = 0, skipped = 0;
+    for (const file of files){
+      const fingerprint = makeDocFingerprint(file.name, file.size);
+      const duplicate = docs.find(d => (d.fingerprint || makeDocFingerprint(d.name,d.size)) === fingerprint);
+      if (duplicate){ skipped++; continue; }
+      const id = 'pdf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+      const meta = { id, name: file.name, size: file.size, fingerprint, tags: uploadTags.slice(), type: 'application/pdf', addedAt: new Date().toISOString() };
+      await putPdf({ ...meta, blob: file });
+      docs.unshift(meta);
+      added++;
+    }
+    evt.target.value = '';
+    saveDocState();
+    renderDocumentLibrary();
+    if (typeof setStatus === 'function') setStatus(`${added} PDF${added===1?'':'s'} uploaded${skipped ? '; '+skipped+' duplicate'+(skipped===1?'':'s')+' skipped' : ''}`);
+  }
+  async function openDocument(id,page=1){
+    const meta = ensureDocState().find(d => d.id === id);
+    const rec = await getPdf(id);
+    if (!rec || !rec.blob){ alert('Could not find this PDF in browser storage. Re-upload the file.'); return; }
+    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+    currentPdfRecord = meta || rec;
+    currentPdfUrl = URL.createObjectURL(rec.blob);
+    const title = byId('documentViewerTitle');
+    const metaEl = byId('documentViewerMeta');
+    const frame = byId('documentViewerFrame');
+    const overlay = byId('documentViewerOverlay');
+    if (title) title.textContent = currentPdfRecord.name || 'PDF Document';
+    if (metaEl) metaEl.textContent = `${fmtBytes(currentPdfRecord.size)} • Local PDF viewer`;
+    if (frame) frame.src = currentPdfUrl + (page ? ('#page=' + Math.max(1, parseInt(page,10)||1)) : '');
+    if (overlay) overlay.hidden = false;
+    document.body.classList.add('document-viewer-open');
+    if (typeof setStatus === 'function') setStatus('Opened PDF document' + (page ? ' to page ' + Math.max(1, parseInt(page,10)||1) : ''));
+  }
+  function closeDocument(){
+    const frame = byId('documentViewerFrame');
+    const overlay = byId('documentViewerOverlay');
+    if (frame) frame.removeAttribute('src');
+    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+    currentPdfUrl = null;
+    currentPdfRecord = null;
+    if (overlay) overlay.hidden = true;
+    document.body.classList.remove('document-viewer-open');
+  }
+  async function removeDocument(id){
+    const docs = ensureDocState();
+    const doc = docs.find(d => d.id === id);
+    if (!doc) return;
+    if (!confirm('Remove "' + doc.name + '" from the Document Library?')) return;
+    await deletePdf(id);
+    state.documents = docs.filter(d => d.id !== id);
+    if (currentPdfRecord && currentPdfRecord.id === id) closeDocument();
+    saveDocState();
+    renderDocumentLibrary();
+    if (typeof setStatus === 'function') setStatus('Removed PDF document');
+  }
+  function renderGuideEditor(){
+    const editor = byId('guideEditor');
+    if (!editor) return;
+    if (editor.dataset.guideLoaded !== '1'){
+      editor.innerHTML = state.documentGuideHtml || '';
+      editor.dataset.guideLoaded = '1';
+    }
+  }
+  function saveGuideEditor(){
+    const editor = byId('guideEditor');
+    if (!editor) return;
+    state.documentGuideHtml = (typeof sanitizeHtml === 'function') ? sanitizeHtml(editor.innerHTML) : editor.innerHTML;
+    saveDocState();
+  }
+  function initDocumentLibrary(){
+    if (!byId('documentLibraryTab')) return;
+    ensureDocState();
+    renderGuideEditor();
+    byId('showOracleLibraryTab')?.addEventListener('click', () => showRightTab('oracles'));
+    byId('showDocumentLibraryTab')?.addEventListener('click', () => showRightTab('documents'));
+    byId('showGuideLibraryTab')?.addEventListener('click', () => showRightTab('guide'));
+    byId('documentPdfUpload')?.addEventListener('change', handlePdfUpload);
+    byId('documentSearch')?.addEventListener('input', renderDocumentLibrary);
+    byId('documentDefaultTags')?.addEventListener('change', () => { if (typeof setStatus === 'function') setStatus('Document upload tags updated'); });
+    byId('documentTagFilterChips')?.addEventListener('click', evt => { const chip = evt.target.closest('.document-tag-chip'); if (!chip) return; chip.classList.toggle('active'); renderDocumentLibrary(); });
+    byId('documentLibraryList')?.addEventListener('click', evt => {
+      const openBtn = evt.target.closest('[data-doc-open]');
+      const toggleBtn = evt.target.closest('[data-doc-toggle-tags]');
+      const removeTagBtn = evt.target.closest('[data-doc-remove-tag]');
+      const delBtn = evt.target.closest('[data-doc-delete]');
+      if (openBtn){ evt.preventDefault(); openDocument(openBtn.dataset.docOpen).catch(err => alert('Could not open PDF: ' + err.message)); return; }
+      if (toggleBtn){
+        const card = toggleBtn.closest('.document-card');
+        const editor = card?.querySelector('[data-doc-tag-editor]');
+        if (editor){ editor.hidden = !editor.hidden; toggleBtn.classList.toggle('active', !editor.hidden); }
+        return;
+      }
+      if (removeTagBtn){
+        const doc = ensureDocState().find(d => d.id === removeTagBtn.dataset.docRemoveTag);
+        if (doc && removeDocTag(doc, removeTagBtn.dataset.tag)){ saveDocState(); renderDocumentLibrary(); if (typeof setStatus === 'function') setStatus('Removed document tag'); }
+        return;
+      }
+      if (delBtn) removeDocument(delBtn.dataset.docDelete).catch(err => alert('Could not remove PDF: ' + err.message));
+    });
+    byId('documentLibraryList')?.addEventListener('change', evt => {
+      const select = evt.target.closest('[data-doc-add-tag]');
+      if (select){
+        const doc = ensureDocState().find(d => d.id === select.dataset.docAddTag);
+        if (doc && appendDocTag(doc, select.value)){ saveDocState(); renderDocumentLibrary(); if (typeof setStatus === 'function') setStatus('Added document tag'); }
+        else if (select) select.value = '';
+        return;
+      }
+      const input = evt.target.closest('[data-doc-new-tag]');
+      if (input && input.value.trim()){
+        const doc = ensureDocState().find(d => d.id === input.dataset.docNewTag);
+        parseDocTags(input.value).forEach(tag => { if (doc) appendDocTag(doc, tag); });
+        input.value = '';
+        saveDocState();
+        renderDocumentLibrary();
+        if (typeof setStatus === 'function') setStatus('Added document tag');
+      }
+    });
+    byId('documentLibraryList')?.addEventListener('keydown', evt => {
+      const input = evt.target.closest('[data-doc-new-tag]');
+      if (!input || evt.key !== 'Enter') return;
+      evt.preventDefault();
+      if (!input.value.trim()) return;
+      const doc = ensureDocState().find(d => d.id === input.dataset.docNewTag);
+      parseDocTags(input.value).forEach(tag => { if (doc) appendDocTag(doc, tag); });
+      input.value = '';
+      saveDocState();
+      renderDocumentLibrary();
+      if (typeof setStatus === 'function') setStatus('Added document tag');
+    });
+    byId('documentViewerClose')?.addEventListener('click', closeDocument);
+    byId('documentViewerOpenNew')?.addEventListener('click', () => { if (currentPdfUrl) window.open(currentPdfUrl, '_blank', 'noopener'); });
+    byId('guideEditor')?.addEventListener('input', saveGuideEditor);
+    byId('clearGuideEditor')?.addEventListener('click', () => { if(confirm('Clear the Guide editor?')){ const ed=byId('guideEditor'); if(ed) ed.innerHTML=''; state.documentGuideHtml=''; saveDocState(); }});
+    document.addEventListener('keydown', evt => { if (evt.key === 'Escape' && document.body.classList.contains('document-viewer-open')) closeDocument(); });
+    renderDocumentLibrary();
+    window.HostileDocuments = {
+      openDocument,
+      closeDocument,
+      renderDocumentLibrary,
+      getDocumentMeta: id => ensureDocState().find(d => d.id === id) || null,
+      importPdfFile: async (file, tags=[]) => {
+        if (!file || !(file.type === 'application/pdf' || String(file.name||'').toLowerCase().endsWith('.pdf'))) return null;
+        const docs = ensureDocState();
+        const fingerprint = makeDocFingerprint(file.name, file.size);
+        let existing = docs.find(d => (d.fingerprint || makeDocFingerprint(d.name,d.size)) === fingerprint);
+        if (existing) return { doc: existing, duplicate: true };
+        const id = 'pdf_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+        const meta = { id, name: file.name, size: file.size, fingerprint, tags: parseDocTags(tags.join ? tags.join(',') : tags), type: 'application/pdf', addedAt: new Date().toISOString() };
+        await putPdf({ ...meta, blob: file });
+        docs.unshift(meta);
+        saveDocState();
+        renderDocumentLibrary();
+        return { doc: meta, duplicate: false };
+      }
+    };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDocumentLibrary); else initDocumentLibrary();
+})();
+
+/* PDF @link capability for rich text editors */
+function documentLinkMarkup(doc,page){
+  const p=Math.max(1,parseInt(page||1,10)||1);
+  const label='@'+escapeHtml(doc.name||'PDF')+' p.'+p;
+  return `<a href="#" class="document-inline-link" data-document-id="${String(doc.id).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]))}" data-document-page="${p}" title="Open PDF page ${p}">${label}</a>`;
+}
+function insertDocumentReference(target,doc,page){
+  if(!target||!doc)return;
+  const p=Math.max(1,parseInt(page||1,10)||1);
+  if(replaceMentionTriggerWithHtml(target, documentLinkMarkup(doc,p))) return;
+  if(replaceMentionTriggerWithText(target, '@'+(doc.name||'PDF')+' p.'+p)) return;
+}
+showEntityMentionPopup = function(target,query=''){
+  closeEntityMentionPopup();
+  const q=String(query||'').toLowerCase();
+  const es=ensureEntityState();
+  const entityItems=es.items.filter(e=>!q||entityDisplayName(e).toLowerCase().includes(q)||entityTagLabels(e).toLowerCase().includes(q)).slice(0,8);
+  const docItems=Array.isArray(state.documents)?state.documents.filter(d=>{const tags=Array.isArray(d.tags)?d.tags:[]; const hay=[d.name,...tags].join(' ').toLowerCase(); return !q||hay.includes(q);}).slice(0,8):[];
+  if(!entityItems.length&&!docItems.length)return;
+  const pop=document.createElement('div'); pop.id='entityMentionPopup'; pop.className='entity-mention-popup document-mention-popup';
+  if(entityItems.length){
+    const h=document.createElement('div'); h.className='mention-section-label'; h.textContent='Entities'; pop.appendChild(h);
+    entityItems.forEach(ent=>{const b=document.createElement('button');b.type='button';b.innerHTML=`<span class="entity-glyph">${entityIconMarkup(entityResolvedIcon(ent),ent.name)}</span><span>${escapeHtml(entityDisplayName(ent))}</span><small>${escapeHtml(entityTagLabels(ent))}</small>`; b.addEventListener('mousedown',ev=>{ev.preventDefault(); insertEntityReference(target,ent); closeEntityMentionPopup();}); pop.appendChild(b);});
+  }
+  if(docItems.length){
+    const h=document.createElement('div'); h.className='mention-section-label'; h.textContent='PDF Documents'; pop.appendChild(h);
+    docItems.forEach(doc=>{const b=document.createElement('button');b.type='button';b.innerHTML=`<span class="entity-glyph document-glyph">PDF</span><span>${escapeHtml(doc.name||'PDF')}</span><small>${escapeHtml((doc.tags||[]).map(t=>'#'+t).join(' ') || 'Select page to link')}</small>`; b.addEventListener('mousedown',ev=>{ev.preventDefault(); const page=prompt('Open PDF to page:', '1'); if(page===null)return; insertDocumentReference(target,doc,page); closeEntityMentionPopup();}); pop.appendChild(b);});
+  }
+  document.body.appendChild(pop); const r=target.getBoundingClientRect(); pop.style.left=Math.max(8,Math.min(window.innerWidth-320,r.left))+'px'; pop.style.top=Math.min(window.innerHeight-260,r.bottom+4)+'px';
+};
+document.addEventListener('click',function(e){
+  const a=e.target.closest&&e.target.closest('.document-inline-link,[data-document-id][data-document-page]');
+  if(!a)return;
+  e.preventDefault();
+  const id=a.dataset.documentId, page=parseInt(a.dataset.documentPage||'1',10)||1;
+  if(window.HostileDocuments&&typeof window.HostileDocuments.openDocument==='function') window.HostileDocuments.openDocument(id,page);
+  else alert('Document Library is not ready yet.');
+});
+
+
+/* Drag/drop PDF document links into rich text editors */
+(function initDocumentDragDropLinks(){
+  function editorAtDrop(evt){
+    const editor = evt.target && evt.target.closest ? evt.target.closest('.rich-editor[contenteditable="true"], [contenteditable="true"]') : null;
+    return editor && !editor.closest('.oracle-output') ? editor : editor;
+  }
+  function placeCaretFromPoint(x,y){
+    let range = null;
+    if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(x,y);
+    else if (document.caretPositionFromPoint){
+      const pos = document.caretPositionFromPoint(x,y);
+      if (pos){ range = document.createRange(); range.setStart(pos.offsetNode,pos.offset); range.collapse(true); }
+    }
+    if (!range) return false;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    return true;
+  }
+  function insertAtDrop(editor, evt, doc, page){
+    editor.focus();
+    placeCaretFromPoint(evt.clientX, evt.clientY);
+    insertDocumentReference(editor, doc, page);
+    editor.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+  document.addEventListener('dragstart', evt => {
+    const drag = evt.target.closest && evt.target.closest('[data-doc-drag]');
+    if (!drag || !evt.dataTransfer) return;
+    const id = drag.dataset.docDrag;
+    evt.dataTransfer.setData('application/x-hostile-document-id', id);
+    evt.dataTransfer.setData('text/plain', drag.textContent || 'PDF Document');
+    evt.dataTransfer.effectAllowed = 'copy';
+  });
+  document.addEventListener('dragover', evt => {
+    const editor = editorAtDrop(evt);
+    if (!editor) return;
+    const dt = evt.dataTransfer;
+    if (dt && (dt.types.includes('application/x-hostile-document-id') || dt.types.includes('Files'))){
+      evt.preventDefault();
+      dt.dropEffect = 'copy';
+      editor.classList.add('rich-editor-drop-target');
+    }
+  });
+  document.addEventListener('dragleave', evt => {
+    const editor = editorAtDrop(evt);
+    if (editor) editor.classList.remove('rich-editor-drop-target');
+  });
+  document.addEventListener('drop', async evt => {
+    const editor = editorAtDrop(evt);
+    if (!editor) return;
+    const dt = evt.dataTransfer;
+    if (!dt) return;
+    const docId = dt.getData('application/x-hostile-document-id');
+    const hasPdfFile = dt.files && [...dt.files].some(f => f.type === 'application/pdf' || String(f.name||'').toLowerCase().endsWith('.pdf'));
+    if (!docId && !hasPdfFile) return;
+    evt.preventDefault();
+    editor.classList.remove('rich-editor-drop-target');
+    let doc = null;
+    if (docId && window.HostileDocuments && typeof window.HostileDocuments.getDocumentMeta === 'function'){
+      doc = window.HostileDocuments.getDocumentMeta(docId);
+    }
+    if (!doc && hasPdfFile && window.HostileDocuments && typeof window.HostileDocuments.importPdfFile === 'function'){
+      const file = [...dt.files].find(f => f.type === 'application/pdf' || String(f.name||'').toLowerCase().endsWith('.pdf'));
+      const result = await window.HostileDocuments.importPdfFile(file);
+      doc = result && result.doc;
+      if (typeof setStatus === 'function' && result) setStatus(result.duplicate ? 'Duplicate PDF already exists; link created to existing document' : 'PDF uploaded and linked');
+    }
+    if (!doc) return;
+    const page = prompt('Open PDF to page:', '1');
+    if (page === null) return;
+    insertAtDrop(editor, evt, doc, page);
+  });
 })();

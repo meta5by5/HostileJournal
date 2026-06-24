@@ -1732,3 +1732,88 @@ button.entity-history-tab:hover{
   color:#ffffff!important;
   text-decoration:underline!important;
 }
+
+/* PDF Document Library / Viewer */
+.oracle-right-tabs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.25rem 0 1rem}.oracle-right-tabs .tab-button{margin:0}.oracle-right-tab[hidden]{display:none!important}.active-oracle-tab{display:block}.document-library-header{align-items:center;margin-bottom:.2rem}.compact-upload-button{width:auto;min-width:8rem;margin:0;padding:.45rem .65rem}.document-library-list{display:flex;flex-direction:column;gap:.32rem;margin-top:.5rem;max-height:72vh;overflow:auto;padding-right:.2rem}.document-library-empty{padding:.75rem;border:1px dashed var(--border);border-radius:10px;background:#111722;color:var(--muted);text-align:center}.document-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.45rem;align-items:center;border:1px solid var(--border);background:#111722;border-radius:9px;padding:.38rem .45rem}.document-card-main{min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.22rem}.document-card-title{font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.15}.document-card-meta{display:none}.document-card-actions{display:flex;gap:.25rem;align-items:center}.document-card-actions button{width:auto;margin:0;padding:.28rem .42rem;font-size:.8rem;line-height:1.1}.document-viewer-overlay{position:fixed;z-index:90;left:1rem;right:calc(430px + 2rem);top:5.25rem;bottom:1rem;background:rgba(15,18,23,.58);backdrop-filter:blur(2px);border:1px solid var(--border);border-radius:16px;padding:.75rem;box-shadow:0 20px 70px rgba(0,0,0,.5)}.document-viewer-card{height:100%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}.document-viewer-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding:.8rem 1rem;border-bottom:1px solid var(--border);background:#111722}.document-viewer-toolbar h2{margin:0}.document-viewer-toolbar p{margin:.2rem 0 0}.document-viewer-actions{display:flex;gap:.5rem;align-items:center}.document-viewer-actions button{width:auto;margin:0}.document-viewer-frame-wrap{flex:1;min-height:0;background:#0b0f17}.document-viewer-frame{width:100%;height:100%;border:0;background:#fff}body.document-viewer-open #controlsPanel,body.document-viewer-open #entityListPanel,body.document-viewer-open #entityTrackerPanel,body.document-viewer-open #crewLinkPanel,body.document-viewer-open #livingShipPanel,body.document-viewer-open #outputPanel{filter:saturate(.8) brightness(.72)}body.document-viewer-open #oraclePanel{filter:none}@media(max-width:1200px){.document-viewer-overlay{left:1rem;right:1rem;top:4.5rem;bottom:1rem}.document-viewer-toolbar{flex-direction:column}.document-viewer-actions{width:100%;justify-content:flex-end}}@media(max-width:640px){.document-card{grid-template-columns:minmax(0,1fr) auto}.document-card-actions{justify-content:flex-end}.document-viewer-overlay{left:.5rem;right:.5rem;top:3.75rem;bottom:.5rem;padding:.4rem}.document-viewer-toolbar{padding:.65rem}.document-viewer-frame-wrap{min-height:70vh}}
+
+/* PDF document @links in rich text editors */
+.document-inline-link{
+  display:inline-flex;
+  align-items:center;
+  gap:0.25rem;
+  padding:0.05rem 0.28rem;
+  border-radius:999px;
+  background:#eaf2ff;
+  color:#0b5c9b;
+  border:1px solid rgba(11,92,155,.22);
+  font-weight:700;
+  text-decoration:none;
+}
+.document-inline-link:hover{background:#dbeaff;text-decoration:none;}
+.document-mention-popup .mention-section-label{
+  padding:0.35rem 0.55rem 0.2rem;
+  font-size:0.72rem;
+  font-weight:800;
+  color:#516070;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.document-mention-popup button small{display:block;opacity:.75;}
+.document-glyph{
+  min-width:2.2rem;
+  padding:0.1rem 0.25rem;
+  border-radius:0.3rem;
+  background:#182338;
+  color:#fff;
+  font-size:.68rem;
+  font-weight:900;
+  text-align:center;
+}
+
+
+.document-search-label{display:block;font-size:.82rem;color:var(--muted);font-weight:800;margin:.75rem 0 .35rem}.document-search-label input{margin-top:.25rem}.document-tag-tools{display:flex;gap:.5rem;align-items:center;margin:.35rem 0 .5rem}.document-tag-tools input{width:100%}.document-tag-filter-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin:.35rem 0 .75rem}.document-tag-chip{width:auto;margin:0;padding:.25rem .55rem;border-radius:999px;border:1px solid var(--border);background:#111722;color:var(--muted);font-size:.78rem}.document-tag-chip.active{background:var(--accent);color:#05111c;border-color:var(--accent);font-weight:900}.document-card-tags{color:var(--accent);font-size:.72rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.05}.document-card-tag-edit{display:none}.document-card-tag-input{padding:.2rem .32rem;font-size:.72rem;min-height:1.35rem;line-height:1.05;border-radius:6px}
+
+/* Document tag dropdown and Guide tab */
+.oracle-right-tabs{grid-template-columns:repeat(3,1fr)}
+.document-card-tag-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.25rem;align-items:center}
+.document-card-tag-select{width:auto;min-width:4.8rem;padding:.2rem .3rem;font-size:.72rem;min-height:1.35rem;line-height:1.05;border-radius:6px}
+.guide-library-tab .small{margin:.2rem 0 .6rem}
+.guide-editor-toolbar{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
+.guide-editor-toolbar button{width:auto;margin:0;padding:.35rem .5rem;font-size:.82rem}
+.guide-editor{min-height:52vh;max-height:72vh;overflow:auto;background:#111722;border:1px solid var(--border);border-radius:10px;padding:.75rem;line-height:1.45}
+.guide-editor:empty:before{content:attr(data-placeholder);color:var(--muted)}
+.guide-editor h3{margin:.5rem 0 .25rem;color:var(--accent)}
+.guide-editor ul,.guide-editor ol{padding-left:1.4rem}
+.guide-library-header{align-items:center;margin-bottom:.2rem}
+.guide-library-header button{width:auto;margin:0}
+@media(max-width:640px){.document-card-tag-row{grid-template-columns:1fr}.document-card-tag-select{width:100%}}
+
+
+/* Document Library compact link/title and additive tags */
+.document-card-title-link{display:block;text-decoration:none;color:var(--text);cursor:pointer}
+.document-card-title-link:hover,.document-card-title-link:focus{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.document-card-tags{display:flex;flex-wrap:wrap;gap:.18rem .25rem;align-items:center;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.05}
+.document-card-tag-chip{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:.08rem .32rem;background:#0d1420;color:var(--accent);font-size:.68rem;font-weight:800;line-height:1.1}
+.document-card-tags-empty{font-size:.68rem;color:var(--muted);font-weight:700}
+.document-card-tag-row{grid-template-columns:minmax(0,1fr) auto}
+.document-card-tag-input::placeholder{color:var(--muted)}
+.document-card-actions{align-self:start}
+.document-card-actions button{padding:.22rem .34rem;min-width:0}
+@media(max-width:640px){.document-card-tag-row{grid-template-columns:1fr}.document-card-tag-select{width:100%}}
+
+/* Guide editor toolbar now reuses the same rich editor icon buttons as journal/comments */
+.guide-editor-toolbar.format-toolbar{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
+.guide-editor-toolbar.format-toolbar .icon-button{width:auto;margin:0}
+.guide-editor-toolbar .image-upload-button input{display:none}
+.rich-editor-drop-target{outline:2px dashed var(--accent);outline-offset:3px;background:rgba(233,178,24,.08)}
+.document-card[draggable="true"], .document-card-title-link[draggable="true"]{cursor:grab}
+.document-card[draggable="true"]:active, .document-card-title-link[draggable="true"]:active{cursor:grabbing}
+
+/* Document tag modifier controls */
+.document-card-tag-editor[hidden]{display:none!important}
+.document-card-tag-editor{display:grid;gap:.25rem;margin-top:.18rem;padding:.25rem;border:1px dashed var(--border);border-radius:8px;background:#0d1420}
+.document-card-edit-tags{display:flex;flex-wrap:wrap;gap:.2rem;align-items:center}
+.document-card-tag-chip.removable{width:auto;margin:0;cursor:pointer;color:var(--accent);background:#101927}
+.document-card-tag-chip.removable span{margin-left:.18rem;color:var(--muted);font-weight:900}
+.document-card-tag-chip.removable:hover,.document-card-tag-chip.removable:focus{border-color:var(--accent);color:var(--text)}
+.document-tag-toggle.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px rgba(85,172,238,.15) inset}

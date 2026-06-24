@@ -42,3 +42,38 @@ Patch: top navigation reordered to Entities, Crew, Journal, Oracle, Builder, Ele
 - Header and top navigation remain locked in place while scrolling.
 - Main workspace is kept aligned to the top when tabs/cards update.
 - Removed downward scroll jumps from navigation actions.
+
+## 2026-06-23 Document Library PDF Viewer
+
+This build reverts to the `hostilejournal-import-export-working-plus-entities` baseline and adds a native Document Library in the right-side Oracles panel.
+
+- Use the right-panel **Documents** tab beside **Oracles**.
+- Upload one or more PDFs with **Upload PDF**.
+- PDFs are stored locally in the browser using IndexedDB, while the campaign JSON stores document metadata.
+- Click **Open** to show the PDF in an expanding viewer card over the left and middle workspace, leaving the right Oracles/Documents panel accessible.
+- Click **Open** in the viewer toolbar to launch the PDF in a browser tab, or **×** / Escape to close the overlay.
+
+Note: browser PDF rendering depends on the built-in PDF viewer for the browser. Export Campaign JSON preserves document names/metadata, but the PDF binary files remain in local browser storage and should be re-uploaded if you move browsers/devices.
+
+## PDF @ Links
+
+Rich text editors now support PDF references through the existing `@` mention popup. Upload PDFs in the right-side Documents tab, then type `@` in a rich editor and select a PDF document. The app prompts for a page number and inserts a clickable PDF link. Clicking the link opens the PDF viewer directly to that page when the browser PDF engine supports page anchors.
+
+
+### Document Library update
+- PDFs now support comma-separated tags on upload and per-document tag editing.
+- Search matches PDF names and tags; tag chips filter groups of documents.
+- Duplicate uploads are skipped using the PDF filename and file size fingerprint.
+- `@` PDF links now replace the typed trigger text, preventing orphaned text such as `@colony-` before the inserted link.
+
+### Document Library list update
+- PDFs are sorted alphabetically by file name.
+- Size/date details are hidden to make the list denser.
+- Document rows use compact padding so more PDFs are visible at once.
+
+## Document Library Guide and tag dropdown update
+
+- Document tag inputs now use the existing document tag catalog as suggestions.
+- Each uploaded PDF row includes an existing-tag dropdown for quickly adding tags already used by other documents.
+- The right panel now includes a Guide tab beside Oracles and Documents.
+- The Guide tab is a rich text editor saved in the Hostile JSON/local state and supports the same @ document links used by journal/comment editors, including PDF page targets.
