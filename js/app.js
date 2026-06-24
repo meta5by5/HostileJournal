@@ -2446,3 +2446,145 @@ document.addEventListener('click',function(e){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bindCrewFullWidth); else bindCrewFullWidth();
   setTimeout(bindCrewFullWidth,250); setTimeout(bindCrewFullWidth,1000);
 })();
+
+/* 2026-06-24 final workflow fixes: sorted entities, scene-button tab lock, Guide campaign JSON, Crew->Journal reset. */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function entityNameForSort(ent){
+    try{
+      if(typeof entityDisplayName === 'function') return String(entityDisplayName(ent)||'').toLowerCase();
+    }catch(e){}
+    return String((ent && ent.name) || '').toLowerCase();
+  }
+  function sortEntityState(){
+    try{
+      var es = (typeof ensureEntityState === 'function') ? ensureEntityState() : (state && state.entities);
+      if(es && Array.isArray(es.items)){
+        es.items.sort(function(a,b){
+          var at=String(a && a.type || ''), bt=String(b && b.type || '');
+          if(at !== bt) return at.localeCompare(bt);
+          return entityNameForSort(a).localeCompare(entityNameForSort(b), undefined, {numeric:true, sensitivity:'base'});
+        });
+      }
+    }catch(e){}
+  }
+  function rememberOpenEntityLibraryGroups(){
+    try{
+      if(typeof ensureEntityState !== 'function') return;
+      var es=ensureEntityState(); es.openGroups=es.openGroups||{};
+      ['entityDirectory','entityListDirectory'].forEach(function(dirId){
+        var dir=byId(dirId); if(!dir) return;
+        dir.querySelectorAll('details.entity-dir-group').forEach(function(details){
+          var label=(details.querySelector('summary span')||{}).textContent||'';
+          var matchType='';
+          if(typeof ENTITY_TYPES !== 'undefined'){
+            Object.entries(ENTITY_TYPES).forEach(function(pair){ if(pair[1] && pair[1].label===label) matchType=pair[0]; });
+          }
+          if(matchType && details.open) es.openGroups[dirId+':'+matchType]=true;
+        });
+      });
+    }catch(e){}
+  }
+  try{
+    if(typeof renderEntityDirectoryOnly === 'function' && !renderEntityDirectoryOnly.__sortedPatch){
+      var oldRenderDirectory=renderEntityDirectoryOnly;
+      renderEntityDirectoryOnly=function(){ sortEntityState(); return oldRenderDirectory.apply(this, arguments); };
+      renderEntityDirectoryOnly.__sortedPatch=true;
+    }
+    if(typeof renderEntityListPanelDirectory === 'function' && !renderEntityListPanelDirectory.__sortedPatch){
+      var oldRenderList=renderEntityListPanelDirectory;
+      renderEntityListPanelDirectory=function(){ sortEntityState(); return oldRenderList.apply(this, arguments); };
+      renderEntityListPanelDirectory.__sortedPatch=true;
+    }
+  }catch(e){}
+  document.addEventListener('dragstart', function(ev){
+    if(ev.target && ev.target.closest && ev.target.closest('.entity-dir-item')) rememberOpenEntityLibraryGroups();
+  }, true);
+
+  function forceSceneBuilderAfterAction(){
+    try{
+      if(typeof state !== 'undefined') state.activeLeftTab='scene';
+      if(window.state) window.state.activeLeftTab='scene';
+      if(typeof showLeftTab === 'function') showLeftTab('scene', true);
+    }catch(e){}
+  }
+  ['generateScene','generateMission','generateWorld','advanceOnly'].forEach(function(id){
+    var btn=byId(id); if(!btn || btn.dataset.sceneStayBound) return;
+    btn.dataset.sceneStayBound='1';
+    btn.addEventListener('click', function(){
+      try{ if(typeof state !== 'undefined') state.activeLeftTab='scene'; }catch(e){}
+      setTimeout(forceSceneBuilderAfterAction, 0);
+      setTimeout(forceSceneBuilderAfterAction, 80);
+    }, true);
+  });
+
+  function syncGuideIntoState(){
+    try{
+      var active=document.activeElement;
+      var ed = (active && (active.id==='guideEditor' || active.id==='centerGuideEditor')) ? active : (byId('centerGuideEditor') || byId('guideEditor'));
+      if(ed){
+        if(typeof state !== 'undefined') state.documentGuideHtml = ed.innerHTML || '';
+        if(window.state) window.state.documentGuideHtml = ed.innerHTML || '';
+      }
+    }catch(e){}
+  }
+  function exportCampaignJsonWithGuide(ev){
+    var btn=byId('exportJson');
+    if(!btn) return;
+    if(ev && ev.target && ev.target.closest && ev.target.closest('#exportJson')){
+      ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      try{
+        if(typeof readFormAndSave === 'function') readFormAndSave();
+        syncGuideIntoState();
+        var payload = (typeof state !== 'undefined') ? state : (window.state || {});
+        payload.documentGuideHtml = payload.documentGuideHtml || '';
+        var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        var stamp=new Date().toISOString().slice(0,19).replaceAll(':','-');
+        a.download='hostile-sci-fi-worldbuilder-'+stamp+'.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        if(typeof setStatus === 'function') setStatus('Exported Campaign JSON including Guide');
+        if(typeof saveState === 'function') saveState();
+      }catch(err){ alert('Could not export campaign JSON: '+(err && err.message ? err.message : err)); }
+      return false;
+    }
+  }
+  window.addEventListener('click', exportCampaignJsonWithGuide, true);
+
+  function resetFromCrewToJournal(ev){
+    var btn = ev.target && ev.target.closest && ev.target.closest('#showJournalNav');
+    if(!btn) return;
+    ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+    try{
+      document.body.classList.remove('crew-workspace-open','entity-editor-workspace-open','entity-editor-overlay-open');
+      if(typeof showLeftTab === 'function') showLeftTab('entityList', true);
+      if(window.showCenterTab) window.showCenterTab('journal', true); else if(typeof showCenterTab === 'function') showCenterTab('journal', true);
+      if(typeof renderEntityListPanelDirectory === 'function') renderEntityListPanelDirectory();
+      if(typeof renderJournal === 'function') renderJournal();
+      if(typeof saveState === 'function') saveState();
+      setTimeout(function(){ try{ window.scrollTo(0,0); }catch(e){} },0);
+    }catch(e){}
+    return false;
+  }
+  window.addEventListener('click', resetFromCrewToJournal, true);
+
+  function importGuideAfterCampaign(){
+    try{
+      var imp=byId('importJson');
+      if(!imp || imp.dataset.guideImportPatch) return;
+      imp.dataset.guideImportPatch='1';
+      imp.addEventListener('change', function(){
+        setTimeout(function(){
+          try{
+            var html=(typeof state!=='undefined' && state.documentGuideHtml) || (window.state && window.state.documentGuideHtml) || '';
+            ['guideEditor','centerGuideEditor'].forEach(function(id){ var ed=byId(id); if(ed){ ed.innerHTML=html; ed.dataset.guideLoaded='1'; }});
+          }catch(e){}
+        }, 250);
+      });
+    }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', importGuideAfterCampaign); else importGuideAfterCampaign();
+  setTimeout(function(){ sortEntityState(); try{ if(typeof renderEntityListPanelDirectory==='function') renderEntityListPanelDirectory(); }catch(e){} }, 600);
+})();
