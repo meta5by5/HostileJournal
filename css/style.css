@@ -1824,3 +1824,30 @@ button.entity-history-tab:hover{
 .center-guide-view .small{margin:.2rem 0 .6rem;}
 #showCenterGuideTab{order:-1;}
 @media(max-width:640px){.oracle-right-tabs{grid-template-columns:1fr}.center-guide-view .guide-editor{min-height:45vh}}
+
+/* 2026-06 center-section streamlining */
+.center-top-row .center-scene-actions{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:.35rem!important;
+  width:auto!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+.center-top-row .center-scene-actions[hidden]{display:none!important;}
+.center-top-row .center-scene-actions button{
+  width:auto!important;
+  min-width:2rem!important;
+  max-width:2.35rem!important;
+  height:2rem!important;
+  padding:.25rem!important;
+  margin:0!important;
+}
+#currentOutputView > .section-header:first-child{display:none!important;}
+#currentOutputView .scene-card{margin-top:.1rem;}
+body.center-scene-active .center-top-row h2::after{content:"";}
+@media(max-width:900px){
+  .center-top-row{gap:.45rem!important;}
+  .center-top-row .center-tabs{order:2;flex-basis:100%!important;justify-content:flex-start!important;margin-left:0!important;}
+  .center-top-row .center-scene-actions{margin-left:auto!important;}
+}

@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./css/style.css?v=20260623-doclib">
 </head>
 <body>
-  <header class="app-header"><div><h1>Hostile Sci-fi Worldbuilder</h1><p>Offline-first scene chaining, worldbuilding tables, districts, factions, planets, derelicts, missions, and conflict architecture.</p></div><div class="header-actions"><div class="status-pill" id="saveStatus">Loading…</div><button id="openSettings" class="settings-gear" type="button" title="Settings" aria-label="Open settings">⚙</button></div></header>
+  <header class="app-header"><div><h1>Hostile Sci-fi Worldbuilder</h1><p>Worldbuilding and Handbook Reader for Sci-fi settings.</p></div><div class="header-actions"><div class="status-pill" id="saveStatus">Loading…</div><button id="openSettings" class="settings-gear" type="button" title="Settings" aria-label="Open settings">⚙</button></div></header>
   <nav class="mobile-panel-tabs top-nav" aria-label="Panel controls">
     <button id="openEntityListPanel" type="button" aria-controls="entityListPanel" title="Entities"><span class="top-nav-icon">☷</span><span class="top-nav-label">Entities</span></button>
     <button id="openCrewLinkPanel" type="button" aria-controls="crewLinkPanel" title="Crew"><img class="top-nav-icon-img" src="./img/crew-link-icon.png" alt=""><span class="top-nav-label">Crew</span></button>
@@ -47,6 +47,10 @@
           <button id="showCenterGuideTab" class="tab-button" type="button">Guide</button>
           <button id="showOutputTab" class="tab-button" type="button">Scene Elements</button>
         </div>
+        <div id="sceneTopActions" class="mini-buttons center-scene-actions" hidden>
+          <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output"><img class="button-inline-icon" src="./img/copy-icon.png" alt=""></button>
+          <button id="addCurrentToJournal" class="secondary compact-button icon-only-button" type="button" title="Add to Journal" aria-label="Add to Journal"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
+        </div>
       </div>
 
       <div id="centerGuideView" class="center-view center-guide-view">
@@ -70,13 +74,6 @@
       </div>
 
       <div id="currentOutputView" class="center-view active-view">
-        <div class="section-header">
-          <h2>Scene Elements</h2>
-          <div class="mini-buttons">
-            <button id="copyScene" class="secondary compact-button icon-button" type="button" title="Copy" aria-label="Copy scene output"><img class="button-inline-icon" src="./img/copy-icon.png" alt=""></button>
-            <button id="addCurrentToJournal" class="secondary compact-button icon-only-button" type="button" title="Add to Journal" aria-label="Add to Journal"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""></button>
-          </div>
-        </div>
         <article id="sceneCard" class="scene-card empty">Generate a scene to begin.</article>
         <h2>Scene Log</h2>
         <div class="button-row"><button id="undoScene" class="secondary">Undo Last</button><button id="clearLog" class="secondary">Clear Log</button></div>
