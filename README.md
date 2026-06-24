@@ -281,3 +281,8 @@ Then open `http://localhost:8000/`. Opening `index.html` directly as `file:///..
 - Fixed **Import Campaign JSON** to reliably import entities, journal entries, Guide HTML, and document library metadata from a campaign JSON file.
 - Added **Lore** as a native Entity Library group with Lore/History/Rumor/Mystery/Culture/Technology subtype options.
 - Local PDF blobs remain browser-local and are not embedded in Campaign JSON; imported document records open from server paths when available or prompt for a local copy.
+
+
+### Entity relationship UI update
+- Relationship rows now show the related entity type immediately before the relationship description field.
+- Entity Directory filter row now includes an **Add New Entity** button using the Add to Journal icon.

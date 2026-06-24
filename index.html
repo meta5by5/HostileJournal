@@ -257,7 +257,10 @@
       </div>
       <div class="panel-title-row entity-title-row"><h2><span class="entity-icon entity-icon-tracker" aria-hidden="true">☷</span> Entity Directory</h2><div class="entity-title-actions"><button class="close-panel secondary" type="button" data-close-panel>Close</button></div></div>
       <p class="small">Search entities, drag them into editors to create entity links, or click an entity to open the editor over the workspace.</p>
-      <label class="entity-filter-label">Filter Entities<input id="entityListFilter" type="search" placeholder="Search entities and tags..."></label>
+      <div class="entity-library-filter-row entity-list-filter-row">
+        <label class="entity-filter-label">Filter Entities<input id="entityListFilter" type="search" placeholder="Search entities and tags..."></label>
+        <button id="entityListAddEntity" class="secondary compact-button entity-library-add-button" type="button" title="Add New Entity"><img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""> Add New Entity</button>
+      </div>
       <div id="entityListDirectory" class="entity-directory entity-list-directory"></div>
     </section>
     <div id="settingsBackdrop" class="settings-backdrop" hidden></div>
@@ -493,7 +496,7 @@
       btn.type = 'button';
       btn.className = 'secondary compact-button entity-library-add-button';
       btn.title = 'Add entity of the displayed type';
-      btn.textContent = '＋ Add Entity';
+      btn.innerHTML = '<img class="button-inline-icon" src="./img/add-journal-icon.png" alt=""> Add New Entity';
       row.appendChild(btn);
       btn.addEventListener('click', addEntityOfVisibleType);
     } else if (btn.parentElement !== row) {
@@ -508,6 +511,11 @@
 
   function runPatch(){
     ensureEntityLibraryAddButton();
+    const listAdd = document.getElementById('entityListAddEntity');
+    if (listAdd && !listAdd.dataset.boundAddEntity) {
+      listAdd.dataset.boundAddEntity = '1';
+      listAdd.addEventListener('click', addEntityOfVisibleType);
+    }
     normalizeRecentArrows();
   }
 
